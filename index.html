@@ -41,7 +41,7 @@ h2{font-size:13px;margin:0 0 10px;color:var(--sub);font-weight:700;letter-spacin
 .view{display:none;animation:in .25s ease}
 .view.on{display:block}
 @keyframes in{from{opacity:0;transform:translateY(8px)}}
-.top{position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:20;display:flex;justify-content:space-between;align-items:center;width:min(100%,520px);padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 10px;margin:0;background:transparent;transition:background .2s,backdrop-filter .2s,border-color .2s;border-bottom:1px solid transparent}
+.top{position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:20;display:flex;justify-content:space-between;align-items:center;width:min(100%,520px);padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 10px;margin:0;background:var(--bg);transition:background .2s,backdrop-filter .2s,border-color .2s;border-bottom:1px solid transparent}
 .top.scrolled{background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom-color:color-mix(in srgb,var(--line) 75%,transparent)}
 .top b{font-size:22px;letter-spacing:-.03em}
 .pill{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-size:12px;font-weight:600;cursor:pointer}
@@ -219,7 +219,7 @@ function renderHome(){
   const tx=p.expenses.map((e,i)=>[i,e]).filter(([i,e])=>(e.date||active)===td);
   const byCat={};p.expenses.forEach(e=>byCat[e.cat]=(byCat[e.cat]||0)+e.amt);
   const ents=Object.entries(byCat).sort((a,b)=>b[1]-a[1]),max=ents.length?ents[0][1]:1;
-  el.innerHTML=`<div class="hero"><div class="ringwrap"><svg class="ring" viewBox="0 0 128 128"><circle cx="64" cy="64" r="54" stroke="rgba(255,255,255,.1)"/><circle cx="64" cy="64" r="54" stroke="${over?"#ff8a85":"#c8f542"}" stroke-dasharray="${pct*C} ${C}"/></svg><div class="ringc"><small>LEFT</small><b class="${over?"neg":"lime"}">${fmt(t.remaining)}</b></div></div>
+  el.innerHTML=`<div class="hero"><div class="ringwrap"><svg class="ring" viewBox="0 0 128 128"><circle cx="64" cy="64" r="54" stroke="rgba(255,255,255,.1)"/><circle cx="64" cy="64" r="54" stroke="${over?"#ff8a85":"var(--lime)"}" stroke-dasharray="${pct*C} ${C}"/></svg><div class="ringc"><small>LEFT</small><b class="${over?"neg":"lime"}">${fmt(t.remaining)}</b></div></div>
   <div class="stats"><div><small>Income</small><b>${fmt(t.income)}</b></div><div><small>Spent</small><b>${fmt(t.expenses)}</b></div><div><small>Today</small><b>${fmt(sum(tx.map(x=>x[1])))}</b></div></div></div>
   <div class="card"><h2>Today</h2>${tx.length?tx.slice().reverse().slice(0,5).map(([i,e])=>itemRow("e",i,e,false)).join(""):`<p class="helper" style="margin:0">Nothing spent today.</p>`}</div>
   <div class="card"><h2>Where it goes</h2>${ents.length?ents.map(([c,a])=>`<div class="bar"><span>${esc(c)}</span><div class="track"><div class="fill" style="width:${a/max*100}%"></div></div><b>${fmt(a)}</b></div>`).join(""):`<p class="helper" style="margin:0">No expenses yet.</p>`}</div>
