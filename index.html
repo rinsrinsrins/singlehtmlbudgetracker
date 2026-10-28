@@ -71,15 +71,16 @@ h2{font-size:13px;margin:0 0 10px;color:var(--sub);font-weight:700;letter-spacin
 .amt.in{color:var(--good)}
 .day{display:flex;justify-content:space-between;font-size:12px;font-weight:700;color:var(--sub);margin:16px 4px 4px}
 .credit-details{margin-top:12px;border:1px solid var(--line);border-radius:14px;overflow:hidden}
-.credit-summary{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px;background:var(--soft);cursor:pointer;font-size:13px;font-weight:700;list-style:none}
-.loan-title{display:flex;align-items:center;gap:8px;min-width:0}
-.loan-title>span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.credit-summary{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;padding:12px 26px 12px 12px;background:var(--soft);cursor:pointer;font-size:13px;font-weight:700;list-style:none}
+.loan-title{display:flex;align-items:center;flex-wrap:wrap;gap:6px;min-width:0}
+.loan-party{min-width:24px;flex:1 1 40px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.loan-direction{flex:0 0 auto;color:var(--sub);font-size:11px;white-space:nowrap}
 .loan-status{flex:0 0 auto;padding:3px 8px;border-radius:999px;background:var(--line);color:var(--sub);font-size:10px;font-weight:700;letter-spacing:.02em}
 .loan-status.partial{background:rgba(200,245,66,.24);color:var(--ink)}
 .loan-status.settled{background:var(--soft);color:var(--good)}
 .loan-card{padding:10px 12px}
 .loan-card .credit-details{margin:0;border:0;border-radius:0;overflow:visible}
-.loan-card .credit-summary{padding:10px 8px;background:transparent}
+.loan-card .credit-summary{padding:10px 26px 10px 8px;background:transparent}
 .loan-card .loan-actions{padding:0 8px 8px}
 .loan-overview{padding:16px}
 .loan-overview .stats{margin-top:12px}
@@ -93,7 +94,8 @@ h2{font-size:13px;margin:0 0 10px;color:var(--sub);font-weight:700;letter-spacin
 .loan-reminders{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
 .loan-reminder{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0}
 .loan-reminder+.loan-reminder{border-top:1px solid var(--line)}
-.loan-reminder strong{display:block;font-size:13px}
+.loan-reminder>span{min-width:0;overflow-wrap:anywhere}
+.loan-reminder strong{display:block;font-size:13px;overflow-wrap:anywhere}
 .loan-reminder small{color:var(--sub)}
 .loan-reminder b{white-space:nowrap;font-size:13px}
 .home-loan-heading{display:flex;justify-content:space-between;align-items:center;gap:8px}
@@ -109,12 +111,18 @@ h2{font-size:13px;margin:0 0 10px;color:var(--sub);font-weight:700;letter-spacin
 .loan-tools[open]>summary:after{content:"−"}
 .loan-tools .seg{margin:0 10px 10px}
 .credit-summary::-webkit-details-marker{display:none}
-.credit-summary:after{content:"+";font-size:18px;line-height:1;color:var(--sub)}
+.credit-summary:after{content:"+";position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:18px;line-height:1;color:var(--sub)}
 .credit-details[open]>.credit-summary:after{content:"−"}
-.credit-table-wrap{overflow-x:auto;padding:0 6px}
-.credit-table{width:100%;border-collapse:collapse;font-size:13px;text-align:left}
+.credit-table-wrap{max-width:100%;overflow-x:auto;overscroll-behavior-inline:contain;padding:0 6px}
+.credit-table-wrap:focus-visible{outline:2px solid var(--lime);outline-offset:2px}
+.credit-table{width:100%;min-width:500px;table-layout:fixed;border-collapse:collapse;font-size:13px;text-align:left}
 .credit-table th,.credit-table td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top}
 .credit-table th{color:var(--sub);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+.credit-table th:nth-child(1){width:82px}
+.credit-table th:nth-child(3){width:105px}
+.credit-table th:nth-child(4){width:150px}
+.credit-table th:nth-child(1),.credit-table td:nth-child(1),.credit-table th:nth-child(3),.credit-table td:nth-child(3){white-space:nowrap}
+.credit-table td:nth-child(2){overflow-wrap:anywhere;word-break:normal}
 .credit-table th:last-child,.credit-table td:last-child{text-align:right;white-space:nowrap}
 .credit-table tr:last-child td{border-bottom:0}
 .credit-actions{display:flex;justify-content:flex-end;gap:6px}
@@ -123,7 +131,7 @@ h2{font-size:13px;margin:0 0 10px;color:var(--sub);font-weight:700;letter-spacin
 .loan-option{display:flex;width:100%;justify-content:space-between;align-items:center;gap:12px;padding:10px 12px;background:transparent;color:var(--ink);text-align:left;border-radius:10px}
 .loan-option+.loan-option{border-top:1px solid var(--line)}
 .loan-option.selected{background:var(--soft)}
-.loan-option span{min-width:0}
+.loan-option span{min-width:0;overflow-wrap:anywhere}
 .loan-option small{display:block;color:var(--sub);font-weight:500}
 .loan-option b{white-space:nowrap;font-size:13px}
 .bar{display:grid;grid-template-columns:90px 1fr auto;gap:10px;align-items:center;font-size:13px;margin:10px 0}
@@ -298,7 +306,7 @@ function loanCards(){
       ...(item.amount>0?[{loanId:item.id,creditIndex:-1,date:item.date,details:item.note||"Initial credit",amount:item.amount}]:[]),
       ...(Array.isArray(item.credits)?item.credits.map((credit,index)=>({loanId:item.id,creditIndex:index,date:credit.date,details:credit.details||"Additional credit",amount:credit.amount})):[])
     ]).sort((a,b)=>(b.date||"").localeCompare(a.date||""));
-    return`<div class="card loan-card"><details class="credit-details"><summary class="credit-summary"><span class="loan-title"><span>${esc(loan.party)} · ${borrowed?"You owe":"Owed to you"}</span><span class="loan-status ${statusClass}">${status}</span></span><span>${fmt(balance)} left</span></summary><div class="stats" style="margin:8px"><div><small>Total credit</small><b>${fmt(total)}</b></div><div><small>Paid</small><b>${fmt(paid)}</b></div><div><small>Balance left</small><b>${fmt(balance)}</b></div></div>${due?`<p class="helper" style="margin:8px">Monthly due day ${loan.dueDay} · ${due.label}</p>`:""}<div class="credit-table-wrap"><table class="credit-table"><thead><tr><th>Date</th><th>Details</th><th>Amount</th><th>Manage</th></tr></thead><tbody>${credits.map(credit=>`<tr><td>${dlabel(credit.date)}</td><td>${esc(credit.details)}</td><td>+${fmt(credit.amount)}</td><td><div class="credit-actions"><button type="button" class="ghost" data-act="editcredit" data-id="${esc(credit.loanId)}" data-index="${credit.creditIndex}">Edit</button><button type="button" class="ghost bad" data-act="deletecredit" data-id="${esc(credit.loanId)}" data-index="${credit.creditIndex}">Delete</button></div></td></tr>`).join("")}</tbody></table></div><div class="row loan-actions"><button class="ghost" data-act="addcredit" data-id="${esc(loan.id)}">${borrowed?"Add credit":"Add amount lent"}</button><button class="ghost" data-act="setduedate" data-id="${esc(loan.id)}">${due?"Change due day":"Set due day"}</button><button class="ghost bad" data-act="deleteloan" data-id="${esc(loan.id)}">Delete source</button></div></details></div>`;
+    return`<div class="card loan-card"><details class="credit-details"><summary class="credit-summary"><span class="loan-title"><span class="loan-party" title="${esc(loan.party)}">${esc(loan.party)}</span><span class="loan-direction">${borrowed?"You owe":"Owed to you"}</span><span class="loan-status ${statusClass}">${status}</span></span><span>${fmt(balance)} left</span></summary><div class="stats" style="margin:8px"><div><small>Total credit</small><b>${fmt(total)}</b></div><div><small>Paid</small><b>${fmt(paid)}</b></div><div><small>Balance left</small><b>${fmt(balance)}</b></div></div>${due?`<p class="helper" style="margin:8px">Monthly due day ${loan.dueDay} · ${due.label}</p>`:""}<div class="credit-table-wrap" role="region" aria-label="Loan credit history" tabindex="0"><table class="credit-table"><thead><tr><th>Date</th><th>Details</th><th>Amount</th><th>Manage</th></tr></thead><tbody>${credits.map(credit=>`<tr><td>${dlabel(credit.date)}</td><td>${esc(credit.details)}</td><td>+${fmt(credit.amount)}</td><td><div class="credit-actions"><button type="button" class="ghost" data-act="editcredit" data-id="${esc(credit.loanId)}" data-index="${credit.creditIndex}">Edit</button><button type="button" class="ghost bad" data-act="deletecredit" data-id="${esc(credit.loanId)}" data-index="${credit.creditIndex}">Delete</button></div></td></tr>`).join("")}</tbody></table></div><div class="row loan-actions"><button class="ghost" data-act="addcredit" data-id="${esc(loan.id)}">${borrowed?"Add credit":"Add amount lent"}</button><button class="ghost" data-act="setduedate" data-id="${esc(loan.id)}">${due?"Change due day":"Set due day"}</button><button class="ghost bad" data-act="deleteloan" data-id="${esc(loan.id)}">Delete source</button></div></details></div>`;
   }).join("");
 }
 function editLoanCredit(id,index){
