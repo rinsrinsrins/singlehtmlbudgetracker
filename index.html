@@ -1,564 +1,2779 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="theme-color" content="#f2f0ea" />
-<meta name="mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<title>Daily Cost Tracker</title>
-<link id="manifestLink" rel="manifest" href="" />
-<link id="appleTouchIcon" rel="apple-touch-icon" href="" />
-<style>
-:root{--bg:#f2f0ea;--card:#fff;--ink:#121212;--sub:#7a766c;--line:#e6e3da;--soft:#f6f4ee;--lime:#c8f542;--on:#121212;--hero:#121212;--danger:#e0443e;--good:#1f9d63}
-@media (prefers-color-scheme:dark){:root:not([data-theme]),:root[data-theme=system]{--bg:#0b0b0b;--card:#181818;--ink:#f1efe8;--sub:#8d8a80;--line:#2a2a28;--soft:#212120;--hero:#1e1e1c;color-scheme:dark}}
-:root[data-theme=system],:root[data-theme=light]{color-scheme:light}
-@media (prefers-color-scheme:dark){:root[data-theme=system]{color-scheme:dark}}
-:root[data-theme=dark]{--bg:#0b0b0b;--card:#181818;--ink:#f1efe8;--sub:#8d8a80;--line:#2a2a28;--soft:#212120;--hero:#1e1e1c}
-:root[data-theme=dark]{color-scheme:dark}
-:root[data-theme=ocean]{--bg:#eaf3f7;--card:#fff;--ink:#102a38;--sub:#58717c;--line:#d3e2e8;--soft:#f1f7f9;--lime:#59c3e6;--on:#102a38;--hero:#123c52;--danger:#cf4f59;--good:#248b68;color-scheme:light}
-:root[data-theme=forest]{--bg:#edf2e9;--card:#fff;--ink:#1d3022;--sub:#647568;--line:#d9e3d6;--soft:#f3f7f0;--lime:#a9d77b;--on:#1d3022;--hero:#203c2a;--danger:#cf554b;--good:#36865b;color-scheme:light}
-:root[data-theme=lavender]{--bg:#f1eef7;--card:#fff;--ink:#28233a;--sub:#777087;--line:#e0dbea;--soft:#f7f5fa;--lime:#c2a9ef;--on:#28233a;--hero:#342b4c;--danger:#d95769;--good:#318d70;color-scheme:light}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 "Inter",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:clip}
-#app{max-width:520px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 76px) 16px calc(120px + env(safe-area-inset-bottom,0px))}
-button,input,select{font:inherit;color:inherit}
-button{cursor:pointer;border:0;border-radius:16px;padding:14px 18px;font-weight:700;background:var(--lime);color:var(--on);transition:transform .12s,opacity .15s}
-button:active{transform:scale(.97)}
-button.ghost{background:var(--soft);color:var(--ink);font-weight:600}
-button.bad{color:var(--danger)}
-button:disabled{opacity:.4}
-input,select{width:100%;padding:13px 14px;border:1.5px solid transparent;border-radius:14px;background:var(--soft);outline:0;transition:border-color .15s}
-input:focus,select:focus{border-color:var(--ink)}
-input[type=number]{appearance:textfield;-moz-appearance:textfield}
-input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{appearance:none;margin:0}
-label{display:block;font-size:12px;font-weight:600;color:var(--sub);margin:0 0 6px 2px}
-.field{margin-bottom:12px}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-h2{font-size:13px;margin:0 0 10px;color:var(--sub);font-weight:700;letter-spacing:.08em;text-transform:uppercase}
-.view{display:none;animation:in .25s ease}
-.view.on{display:block}
-@keyframes in{from{opacity:0;transform:translateY(8px)}}
-.top{position:fixed;inset:0 0 auto;z-index:20;width:100%;padding:env(safe-area-inset-top,0px) 0 0;background:var(--bg);transition:background .2s,backdrop-filter .2s,border-color .2s;border-bottom:1px solid transparent}
-.top-inner{display:flex;justify-content:space-between;align-items:center;max-width:520px;margin:0 auto;padding:10px 16px}
-.top.scrolled{background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom-color:color-mix(in srgb,var(--line) 75%,transparent)}
-.top b{font-size:22px;letter-spacing:-.03em}
-.pill{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-size:12px;font-weight:600;cursor:pointer}
-.pill i{width:7px;height:7px;border-radius:50%;background:var(--lime);box-shadow:0 0 0 1px var(--ink)}
-.card{background:var(--card);border-radius:24px;padding:18px;margin-bottom:14px;border:1px solid var(--line)}
-.hero{background:var(--hero);color:#f1efe8;border-radius:32px;padding:22px;margin-bottom:14px}
-.ringwrap{display:grid;place-items:center;position:relative;margin:4px auto 18px;width:210px}
-.ring{width:210px;height:210px;transform:rotate(-90deg)}
-.ring circle{fill:none;stroke-width:9;stroke-linecap:round}
-.ringc{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
-.ringc small{font-size:11px;letter-spacing:.14em;opacity:.6;font-weight:700}
-.ringc b{font-size:30px;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.stats div{background:rgba(255,255,255,.07);border-radius:16px;padding:11px 12px}
-.stats small{display:block;font-size:11px;opacity:.6}
-.stats b{font-size:15px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
-.lime{color:var(--lime)}.neg{color:#ff8a85}
-.item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer}
-.item:last-child{border-bottom:0}
-.ico{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;background:var(--soft);font-weight:800;flex:0 0 auto}
-.ico.inc{background:var(--lime);color:var(--on)}
-.item .m{flex:1;min-width:0}
-.item .m b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.item .m small{color:var(--sub);font-size:12px}
-.amt{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
-.amt.in{color:var(--good)}
-.day{display:flex;justify-content:space-between;font-size:12px;font-weight:700;color:var(--sub);margin:16px 4px 4px}
-.credit-details{margin-top:12px;border:1px solid var(--line);border-radius:14px;overflow:hidden}
-.credit-summary{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;padding:12px 26px 12px 12px;background:var(--soft);cursor:pointer;font-size:13px;font-weight:700;list-style:none}
-.loan-title{display:flex;align-items:center;flex-wrap:wrap;gap:6px;min-width:0}
-.loan-party{min-width:24px;flex:1 1 40px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.loan-direction{flex:0 0 auto;color:var(--sub);font-size:11px;white-space:nowrap}
-.loan-status{flex:0 0 auto;padding:3px 8px;border-radius:999px;background:var(--line);color:var(--sub);font-size:10px;font-weight:700;letter-spacing:.02em}
-.loan-status.partial{background:rgba(200,245,66,.24);color:var(--ink)}
-.loan-status.settled{background:var(--soft);color:var(--good)}
-.loan-card{padding:10px 12px}
-.loan-card .credit-details{margin:0;border:0;border-radius:0;overflow:visible}
-.loan-card .credit-summary{padding:10px 26px 10px 8px;background:transparent}
-.loan-card .loan-actions{padding:0 8px 8px}
-.loan-overview{padding:16px}
-.loan-overview .stats{margin-top:12px}
-.loan-overview .stats div{background:var(--soft)}
-.loan-overview .stats small{opacity:1;color:var(--sub)}
-.loan-overview .stats b{font-size:17px}
-.home-loan-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
-.home-loan-stats div{min-width:0;background:var(--soft);border-radius:16px;padding:11px 12px}
-.home-loan-stats small{display:block;color:var(--sub);font-size:11px}
-.home-loan-stats b{font-size:15px;font-variant-numeric:tabular-nums}
-.loan-reminders{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
-.loan-reminder{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0}
-.loan-reminder+.loan-reminder{border-top:1px solid var(--line)}
-.loan-reminder>span{min-width:0;overflow-wrap:anywhere}
-.loan-reminder strong{display:block;font-size:13px;overflow-wrap:anywhere}
-.loan-reminder small{color:var(--sub)}
-.loan-reminder b{white-space:nowrap;font-size:13px}
-.home-loan-heading{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.home-loan-heading h2{margin:0}
-.home-loan-heading button{padding:7px 10px;font-size:12px}
-.loan-list-heading{display:flex;justify-content:space-between;align-items:center;margin:20px 4px 8px}
-.loan-list-heading h2{margin:0}
-.loan-list-heading small{color:var(--sub);font-size:12px}
-.loan-tools{margin:0 0 14px;background:var(--card);border:1px solid var(--line);border-radius:16px}
-.loan-tools>summary{padding:12px 14px;cursor:pointer;font-size:13px;font-weight:700;list-style:none}
-.loan-tools>summary::-webkit-details-marker{display:none}
-.loan-tools>summary:after{content:"+";float:right;color:var(--sub)}
-.loan-tools[open]>summary:after{content:"−"}
-.loan-tools .seg{margin:0 10px 10px}
-.credit-summary::-webkit-details-marker{display:none}
-.credit-summary:after{content:"+";position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:18px;line-height:1;color:var(--sub)}
-.credit-details[open]>.credit-summary:after{content:"−"}
-.credit-table-wrap{max-width:100%;overflow-x:auto;overscroll-behavior-inline:contain;padding:0 6px}
-.credit-table-wrap:focus-visible{outline:2px solid var(--lime);outline-offset:2px}
-.credit-table{width:100%;min-width:500px;table-layout:fixed;border-collapse:collapse;font-size:13px;text-align:left}
-.credit-table th,.credit-table td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top}
-.credit-table th{color:var(--sub);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
-.credit-table th:nth-child(1){width:82px}
-.credit-table th:nth-child(3){width:105px}
-.credit-table th:nth-child(4){width:150px}
-.credit-table th:nth-child(1),.credit-table td:nth-child(1),.credit-table th:nth-child(3),.credit-table td:nth-child(3){white-space:nowrap}
-.credit-table td:nth-child(2){overflow-wrap:anywhere;word-break:normal}
-.credit-table th:last-child,.credit-table td:last-child{text-align:right;white-space:nowrap}
-.credit-table tr:last-child td{border-bottom:0}
-.credit-actions{display:flex;justify-content:flex-end;gap:6px}
-.credit-actions button{padding:6px 9px;font-size:11px}
-.loan-picker{max-height:230px;overflow:auto;border:1px solid var(--line);border-radius:14px;padding:4px;margin:0 0 12px}
-.loan-option{display:flex;width:100%;justify-content:space-between;align-items:center;gap:12px;padding:10px 12px;background:transparent;color:var(--ink);text-align:left;border-radius:10px}
-.loan-option+.loan-option{border-top:1px solid var(--line)}
-.loan-option.selected{background:var(--soft)}
-.loan-option span{min-width:0;overflow-wrap:anywhere}
-.loan-option small{display:block;color:var(--sub);font-weight:500}
-.loan-option b{white-space:nowrap;font-size:13px}
-.bar{display:grid;grid-template-columns:90px 1fr auto;gap:10px;align-items:center;font-size:13px;margin:10px 0}
-.track{height:10px;border-radius:99px;background:var(--soft);overflow:hidden}
-.fill{height:100%;border-radius:inherit;background:var(--ink)}
-.seg{display:flex;background:var(--soft);border-radius:16px;padding:4px;margin-bottom:14px}
-.seg button{flex:1;background:transparent;color:var(--sub);padding:10px;border-radius:12px;font-weight:600}
-.seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.12)}
-.big{display:flex;align-items:center;justify-content:center;gap:6px;margin:12px 0 18px}
-.big span{font-size:34px;font-weight:800;color:var(--sub)}
-.big input{width:auto;max-width:260px;background:transparent;font-size:52px;font-weight:800;letter-spacing:-.05em;text-align:center;padding:0;border:0}
-.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
-.chip{background:var(--soft);color:var(--ink);padding:9px 14px;border-radius:999px;font-weight:600;font-size:13px}
-.chip.on{background:var(--ink);color:var(--bg)}
-.cta{width:100%;padding:17px;font-size:16px;border-radius:20px;margin-top:6px}
-.empty{text-align:center;padding:36px 18px}
-.empty b{display:block;font-size:18px;margin-bottom:4px}
-.empty p{color:var(--sub);margin:0 0 16px}
-.pcard{cursor:pointer;display:block}
-.pcard.act{border-color:var(--ink);box-shadow:0 0 0 1.5px var(--ink)}
-.pcard .h{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-.pcard .h b{font-size:17px}
-.badge{font-size:11px;font-weight:700;background:var(--lime);color:var(--on);padding:3px 9px;border-radius:99px}
-.pcard .stats div{background:var(--soft)}
-.pcard .stats small{opacity:1;color:var(--sub)}
-.tabbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:20;display:flex;gap:2px;align-items:center;background:#121212;border-radius:999px;padding:6px;box-shadow:0 14px 34px rgba(0,0,0,.3);width:min(calc(100% - 28px),420px)}
-.tabbar button{flex:1;background:transparent;color:#8d8a80;padding:9px 0 7px;border-radius:999px;display:grid;justify-items:center;gap:2px;font-size:10px;font-weight:600}
-.tabbar button.on{color:var(--lime)}
-.tabbar svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.tabbar button.plus{flex:0 0 52px;height:52px;padding:0;background:var(--lime);color:#121212;align-content:center}
-.tabbar button.plus svg{stroke-width:2.6}
-.tabbar button.plus span{display:none}
-#scrim{position:fixed;inset:0;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .2s;z-index:30}
-#scrim.on{opacity:1;pointer-events:auto}
-#sheet{position:fixed;left:50%;bottom:0;transform:translate(-50%,105%);width:min(100%,520px);background:var(--card);border-radius:28px 28px 0 0;padding:10px 20px calc(20px + env(safe-area-inset-bottom,0px));z-index:31;transition:transform .28s cubic-bezier(.2,.8,.2,1);max-height:90vh;overflow:auto}
-#sheet.on{transform:translate(-50%,0)}
-.grab{width:40px;height:4px;border-radius:9px;background:var(--line);margin:0 auto 14px}
-#sheet h3{margin:0 0 14px;font-size:18px}
-.sb{display:flex;gap:8px;margin-top:8px}.sb button{flex:1}
-.helper{color:var(--sub);font-size:13px;margin:0 0 12px}
-.toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 14px);transform:translate(-50%,-20px);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:99px;font-weight:600;font-size:13px;opacity:0;pointer-events:none;transition:.2s;z-index:40}
-.toast.show{opacity:1;transform:translate(-50%,0)}
-.row{display:flex;gap:8px;flex-wrap:wrap}.row button{flex:1}
-@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
-</style>
-</head>
-<body>
-<header class="top"><div class="top-inner"><b id="title">Home</b><span class="pill" id="pill" data-act="tab" data-v="cutoffs"><i></i><span id="pillTxt">No cutoff</span></span></div></header>
-<div id="app">
-  <section class="view" id="v-home"></section>
-  <section class="view" id="v-add"></section>
-  <section class="view" id="v-history"></section>
-  <section class="view" id="v-loans"></section>
-  <section class="view" id="v-cutoffs"></section>
-  <section class="view" id="v-more"></section>
-</div>
-<nav class="tabbar" id="tabbar"></nav>
-<div id="scrim"></div><div id="sheet" role="dialog" aria-modal="true"></div>
-<div id="toast" class="toast" role="status" aria-live="polite"></div>
-<script>
-let state={categories:["Food","Transportation","Bills","Others"],paymentMethods:["Cash","Debit card","Credit card","Bank transfer","E-wallet","Other"],periods:{},loans:[],previousSavings:0,loanReminderDays:7,theme:"system"};
-let active=null,view="home",mode="expense",filter="all",loansView="loans",paymentLoanId=null,addCat=null,addDate=null;
-const LS="budget-tracker-autosave",$=s=>document.querySelector(s);
-const THEMES=["system","light","dark","ocean","forest","lavender"];
-const sum=a=>a.reduce((s,x)=>s+x.amt,0);
-const fmt=n=>(n<0?"-":"")+"₱"+Math.abs(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
-const esc=v=>String(v).replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));
-const today=()=>{const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`};
-const dlabel=d=>d===today()?"Today":new Date(d+"T00:00").toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});
-const tlabel=t=>{const d=new Date(t);return Number.isNaN(d.getTime())?"":d.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"})};
-const P=()=>active&&state.periods[active];
-function totals(k){const p=state.periods[k],income=p.salary+sum(p.income),expenses=sum(p.expenses);return{income,expenses,remaining:income-expenses}}
-function saved(){return Object.keys(state.periods).reduce((t,k)=>t+totals(k).remaining,state.previousSavings||0)}
-let tt;function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(tt);tt=setTimeout(()=>t.classList.remove("show"),2200)}
-function autosave(){try{localStorage.setItem(LS,JSON.stringify({state,activePeriodKey:active}))}catch(e){}}
-function applyLoaded(p){state={categories:p.categories,paymentMethods:Array.isArray(p.paymentMethods)?p.paymentMethods:["Cash","Debit card","Credit card","Bank transfer","E-wallet","Other"],periods:p.periods,loans:Array.isArray(p.loans)?p.loans:[],previousSavings:p.previousSavings||0,loanReminderDays:Number.isInteger(p.loanReminderDays)&&p.loanReminderDays>=0&&p.loanReminderDays<=60?p.loanReminderDays:7,theme:THEMES.includes(p.theme)?p.theme:"system"};setTheme(state.theme);const ks=Object.keys(state.periods).sort();active=p.activePeriodKey&&state.periods[p.activePeriodKey]?p.activePeriodKey:ks.length?ks[ks.length-1]:null}
-function autoload(){try{const r=localStorage.getItem(LS);if(!r)return;const p=JSON.parse(r);if(p.state&&p.state.categories&&p.state.periods)applyLoaded({...p.state,activePeriodKey:p.activePeriodKey})}catch(e){}}
-function setTheme(theme){state.theme=THEMES.includes(theme)?theme:"system";document.documentElement.dataset.theme=state.theme}
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#f2f0ea" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <title>Daily Cost Tracker</title>
+    <link id="manifestLink" rel="manifest" href="" />
+    <link id="appleTouchIcon" rel="apple-touch-icon" href="" />
+    <style>
+      :root {
+        --bg: #f2f0ea;
+        --card: #fff;
+        --ink: #121212;
+        --sub: #7a766c;
+        --line: #e6e3da;
+        --soft: #f6f4ee;
+        --lime: #c8f542;
+        --on: #121212;
+        --hero: #121212;
+        --danger: #e0443e;
+        --good: #1f9d63;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme]),
+        :root[data-theme="system"] {
+          --bg: #0b0b0b;
+          --card: #181818;
+          --ink: #f1efe8;
+          --sub: #8d8a80;
+          --line: #2a2a28;
+          --soft: #212120;
+          --hero: #1e1e1c;
+          color-scheme: dark;
+        }
+      }
+      :root[data-theme="system"],
+      :root[data-theme="light"] {
+        color-scheme: light;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root[data-theme="system"] {
+          color-scheme: dark;
+        }
+      }
+      :root[data-theme="dark"] {
+        --bg: #0b0b0b;
+        --card: #181818;
+        --ink: #f1efe8;
+        --sub: #8d8a80;
+        --line: #2a2a28;
+        --soft: #212120;
+        --hero: #1e1e1c;
+      }
+      :root[data-theme="dark"] {
+        color-scheme: dark;
+      }
+      :root[data-theme="ocean"] {
+        --bg: #eaf3f7;
+        --card: #fff;
+        --ink: #102a38;
+        --sub: #58717c;
+        --line: #d3e2e8;
+        --soft: #f1f7f9;
+        --lime: #59c3e6;
+        --on: #102a38;
+        --hero: #123c52;
+        --danger: #cf4f59;
+        --good: #248b68;
+        color-scheme: light;
+      }
+      :root[data-theme="forest"] {
+        --bg: #edf2e9;
+        --card: #fff;
+        --ink: #1d3022;
+        --sub: #647568;
+        --line: #d9e3d6;
+        --soft: #f3f7f0;
+        --lime: #a9d77b;
+        --on: #1d3022;
+        --hero: #203c2a;
+        --danger: #cf554b;
+        --good: #36865b;
+        color-scheme: light;
+      }
+      :root[data-theme="lavender"] {
+        --bg: #f1eef7;
+        --card: #fff;
+        --ink: #28233a;
+        --sub: #777087;
+        --line: #e0dbea;
+        --soft: #f7f5fa;
+        --lime: #c2a9ef;
+        --on: #28233a;
+        --hero: #342b4c;
+        --danger: #d95769;
+        --good: #318d70;
+        color-scheme: light;
+      }
+      * {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font:
+          15px/1.45 "Inter",
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+        overflow-x: clip;
+      }
+      #app {
+        max-width: 520px;
+        margin: 0 auto;
+        padding: calc(env(safe-area-inset-top, 0px) + 76px) 16px
+          calc(120px + env(safe-area-inset-bottom, 0px));
+      }
+      button,
+      input,
+      select {
+        font: inherit;
+        color: inherit;
+      }
+      button {
+        cursor: pointer;
+        border: 0;
+        border-radius: 16px;
+        padding: 14px 18px;
+        font-weight: 700;
+        background: var(--lime);
+        color: var(--on);
+        transition:
+          transform 0.12s,
+          opacity 0.15s;
+      }
+      button:active {
+        transform: scale(0.97);
+      }
+      button.ghost {
+        background: var(--soft);
+        color: var(--ink);
+        font-weight: 600;
+      }
+      button.bad {
+        color: var(--danger);
+      }
+      button:disabled {
+        opacity: 0.4;
+      }
+      input,
+      select {
+        width: 100%;
+        padding: 13px 14px;
+        border: 1.5px solid transparent;
+        border-radius: 14px;
+        background: var(--soft);
+        outline: 0;
+        transition: border-color 0.15s;
+      }
+      input:focus,
+      select:focus {
+        border-color: var(--ink);
+      }
+      input[type="number"] {
+        appearance: textfield;
+        -moz-appearance: textfield;
+      }
+      input[type="number"]::-webkit-inner-spin-button,
+      input[type="number"]::-webkit-outer-spin-button {
+        appearance: none;
+        margin: 0;
+      }
+      label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--sub);
+        margin: 0 0 6px 2px;
+      }
+      .field {
+        margin-bottom: 12px;
+      }
+      .two {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      h2 {
+        font-size: 13px;
+        margin: 0 0 10px;
+        color: var(--sub);
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .view {
+        display: none;
+        animation: in 0.25s ease;
+      }
+      .view.on {
+        display: block;
+      }
+      @keyframes in {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+      }
+      .top {
+        position: fixed;
+        inset: 0 0 auto;
+        z-index: 20;
+        width: 100%;
+        padding: env(safe-area-inset-top, 0px) 0 0;
+        background: var(--bg);
+        transition:
+          background 0.2s,
+          backdrop-filter 0.2s,
+          border-color 0.2s;
+        border-bottom: 1px solid transparent;
+      }
+      .top-inner {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        max-width: 520px;
+        margin: 0 auto;
+        padding: 10px 16px;
+      }
+      .top.scrolled {
+        background: color-mix(in srgb, var(--bg) 82%, transparent);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border-bottom-color: color-mix(in srgb, var(--line) 75%, transparent);
+      }
+      .top b {
+        font-size: 22px;
+        letter-spacing: -0.03em;
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 12px;
+        border-radius: 999px;
+        background: var(--card);
+        border: 1px solid var(--line);
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .pill i {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--lime);
+        box-shadow: 0 0 0 1px var(--ink);
+      }
+      .card {
+        background: var(--card);
+        border-radius: 24px;
+        padding: 18px;
+        margin-bottom: 14px;
+        border: 1px solid var(--line);
+      }
+      .hero {
+        background: var(--hero);
+        color: #f1efe8;
+        border-radius: 32px;
+        padding: 22px;
+        margin-bottom: 14px;
+      }
+      .ringwrap {
+        display: grid;
+        place-items: center;
+        position: relative;
+        margin: 4px auto 18px;
+        width: 210px;
+      }
+      .ring {
+        width: 210px;
+        height: 210px;
+        transform: rotate(-90deg);
+      }
+      .ring circle {
+        fill: none;
+        stroke-width: 9;
+        stroke-linecap: round;
+      }
+      .ringc {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-content: center;
+        text-align: center;
+      }
+      .ringc small {
+        font-size: 11px;
+        letter-spacing: 0.14em;
+        opacity: 0.6;
+        font-weight: 700;
+      }
+      .ringc b {
+        font-size: 30px;
+        letter-spacing: -0.04em;
+        font-variant-numeric: tabular-nums;
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+      .stats div {
+        background: rgba(255, 255, 255, 0.07);
+        border-radius: 16px;
+        padding: 11px 12px;
+      }
+      .stats small {
+        display: block;
+        font-size: 11px;
+        opacity: 0.6;
+      }
+      .stats b {
+        font-size: 15px;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.02em;
+      }
+      .lime {
+        color: var(--lime);
+      }
+      .neg {
+        color: #ff8a85;
+      }
+      .item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--line);
+        cursor: pointer;
+      }
+      .item:last-child {
+        border-bottom: 0;
+      }
+      .ico {
+        width: 40px;
+        height: 40px;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        background: var(--soft);
+        font-weight: 800;
+        flex: 0 0 auto;
+      }
+      .ico.inc {
+        background: var(--lime);
+        color: var(--on);
+      }
+      .item .m {
+        flex: 1;
+        min-width: 0;
+      }
+      .item .m b {
+        display: block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .item .m small {
+        color: var(--sub);
+        font-size: 12px;
+      }
+      .amt {
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      .amt.in {
+        color: var(--good);
+      }
+      .day {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--sub);
+        margin: 16px 4px 4px;
+      }
+      .credit-details {
+        margin-top: 12px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        overflow: hidden;
+      }
+      .credit-summary {
+        position: relative;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 26px 12px 12px;
+        background: var(--soft);
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 700;
+        list-style: none;
+      }
+      .loan-title {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 6px;
+        min-width: 0;
+      }
+      .loan-party {
+        min-width: 24px;
+        flex: 1 1 40px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .loan-direction {
+        flex: 0 0 auto;
+        color: var(--sub);
+        font-size: 11px;
+        white-space: nowrap;
+      }
+      .loan-status {
+        flex: 0 0 auto;
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: var(--line);
+        color: var(--sub);
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+      .loan-status.partial {
+        background: rgba(200, 245, 66, 0.24);
+        color: var(--ink);
+      }
+      .loan-status.settled {
+        background: var(--soft);
+        color: var(--good);
+      }
+      .loan-card {
+        padding: 10px 12px;
+      }
+      .loan-card .credit-details {
+        margin: 0;
+        border: 0;
+        border-radius: 0;
+        overflow: visible;
+      }
+      .loan-card .credit-summary {
+        padding: 10px 26px 10px 8px;
+        background: transparent;
+      }
+      .loan-card .loan-actions {
+        padding: 0 8px 8px;
+      }
+      .loan-overview {
+        padding: 16px;
+      }
+      .loan-overview .stats {
+        margin-top: 12px;
+      }
+      .loan-overview .stats div {
+        background: var(--soft);
+      }
+      .loan-overview .stats small {
+        opacity: 1;
+        color: var(--sub);
+      }
+      .loan-overview .stats b {
+        font-size: 17px;
+      }
+      .home-loan-stats {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        margin-top: 12px;
+      }
+      .home-loan-stats div {
+        min-width: 0;
+        background: var(--soft);
+        border-radius: 16px;
+        padding: 11px 12px;
+      }
+      .home-loan-stats small {
+        display: block;
+        color: var(--sub);
+        font-size: 11px;
+      }
+      .home-loan-stats b {
+        font-size: 15px;
+        font-variant-numeric: tabular-nums;
+      }
+      .loan-reminders {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid var(--line);
+      }
+      .loan-reminder {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 0;
+      }
+      .loan-reminder + .loan-reminder {
+        border-top: 1px solid var(--line);
+      }
+      .loan-reminder > span {
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+      .loan-reminder strong {
+        display: block;
+        font-size: 13px;
+        overflow-wrap: anywhere;
+      }
+      .loan-reminder small {
+        color: var(--sub);
+      }
+      .loan-reminder b {
+        white-space: nowrap;
+        font-size: 13px;
+      }
+      .home-loan-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+      }
+      .home-loan-heading h2 {
+        margin: 0;
+      }
+      .home-loan-heading button {
+        padding: 7px 10px;
+        font-size: 12px;
+      }
+      .loan-list-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 20px 4px 8px;
+      }
+      .loan-list-heading h2 {
+        margin: 0;
+      }
+      .loan-list-heading small {
+        color: var(--sub);
+        font-size: 12px;
+      }
+      .loan-tools {
+        margin: 0 0 14px;
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+      }
+      .loan-tools > summary {
+        padding: 12px 14px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 700;
+        list-style: none;
+      }
+      .loan-tools > summary::-webkit-details-marker {
+        display: none;
+      }
+      .loan-tools > summary:after {
+        content: "+";
+        float: right;
+        color: var(--sub);
+      }
+      .loan-tools[open] > summary:after {
+        content: "−";
+      }
+      .loan-tools .seg {
+        margin: 0 10px 10px;
+      }
+      .credit-summary::-webkit-details-marker {
+        display: none;
+      }
+      .credit-summary:after {
+        content: "+";
+        position: absolute;
+        right: 4px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 18px;
+        line-height: 1;
+        color: var(--sub);
+      }
+      .credit-details[open] > .credit-summary:after {
+        content: "−";
+      }
+      .credit-table-wrap {
+        max-width: 100%;
+        overflow-x: auto;
+        overscroll-behavior-inline: contain;
+        padding: 0 6px;
+      }
+      .credit-table-wrap:has(tbody:empty) {
+        display: none;
+      }
+      .credit-table-wrap:focus-visible {
+        outline: 2px solid var(--lime);
+        outline-offset: 2px;
+      }
+      .credit-table {
+        width: 100%;
+        min-width: 600px;
+        table-layout: fixed;
+        border-collapse: collapse;
+        font-size: 13px;
+        text-align: left;
+      }
+      .credit-table th,
+      .credit-table td {
+        padding: 9px 8px;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+      }
+      .credit-table th {
+        color: var(--sub);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .credit-table th:nth-child(1) {
+        width: 82px;
+      }
+      .credit-table th:nth-child(3) {
+        width: 112px;
+      }
+      .credit-table th:nth-child(4) {
+        width: 110px;
+      }
+      .credit-table th:nth-child(5) {
+        width: 150px;
+      }
+      .credit-table th:nth-child(1),
+      .credit-table td:nth-child(1),
+      .credit-table th:nth-child(3),
+      .credit-table td:nth-child(3),
+      .credit-table th:nth-child(4),
+      .credit-table td:nth-child(4) {
+        white-space: nowrap;
+      }
+      .credit-table td:nth-child(2) {
+        overflow-wrap: anywhere;
+        word-break: normal;
+      }
+      .credit-table th:last-child,
+      .credit-table td:last-child {
+        text-align: right;
+        white-space: nowrap;
+      }
+      .credit-table tr:last-child td {
+        border-bottom: 0;
+      }
+      .credit-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 6px;
+      }
+      .credit-actions button {
+        padding: 6px 9px;
+        font-size: 11px;
+      }
+      .loan-picker {
+        max-height: 230px;
+        overflow: auto;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 4px;
+        margin: 0 0 12px;
+      }
+      .loan-option {
+        display: flex;
+        width: 100%;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+        background: transparent;
+        color: var(--ink);
+        text-align: left;
+        border-radius: 10px;
+      }
+      .loan-option + .loan-option {
+        border-top: 1px solid var(--line);
+      }
+      .loan-option.selected {
+        background: var(--soft);
+      }
+      .loan-option span {
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+      .loan-option small {
+        display: block;
+        color: var(--sub);
+        font-weight: 500;
+      }
+      .loan-option b {
+        white-space: nowrap;
+        font-size: 13px;
+      }
+      .bar {
+        display: grid;
+        grid-template-columns: 90px 1fr auto;
+        gap: 10px;
+        align-items: center;
+        font-size: 13px;
+        margin: 10px 0;
+      }
+      .track {
+        height: 10px;
+        border-radius: 99px;
+        background: var(--soft);
+        overflow: hidden;
+      }
+      .fill {
+        height: 100%;
+        border-radius: inherit;
+        background: var(--ink);
+      }
+      .seg {
+        display: flex;
+        background: var(--soft);
+        border-radius: 16px;
+        padding: 4px;
+        margin-bottom: 14px;
+      }
+      .seg button {
+        flex: 1;
+        background: transparent;
+        color: var(--sub);
+        padding: 10px;
+        border-radius: 12px;
+        font-weight: 600;
+      }
+      .seg button.on {
+        background: var(--card);
+        color: var(--ink);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+      }
+      .big {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        margin: 12px 0 18px;
+      }
+      .big span {
+        font-size: 34px;
+        font-weight: 800;
+        color: var(--sub);
+      }
+      .big input {
+        width: auto;
+        max-width: 260px;
+        background: transparent;
+        font-size: 52px;
+        font-weight: 800;
+        letter-spacing: -0.05em;
+        text-align: center;
+        padding: 0;
+        border: 0;
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+      .chip {
+        background: var(--soft);
+        color: var(--ink);
+        padding: 9px 14px;
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: 13px;
+      }
+      .chip.on {
+        background: var(--ink);
+        color: var(--bg);
+      }
+      .cta {
+        width: 100%;
+        padding: 17px;
+        font-size: 16px;
+        border-radius: 20px;
+        margin-top: 6px;
+      }
+      .empty {
+        text-align: center;
+        padding: 36px 18px;
+      }
+      .empty b {
+        display: block;
+        font-size: 18px;
+        margin-bottom: 4px;
+      }
+      .empty p {
+        color: var(--sub);
+        margin: 0 0 16px;
+      }
+      .pcard {
+        cursor: pointer;
+        display: block;
+      }
+      .pcard.act {
+        border-color: var(--ink);
+        box-shadow: 0 0 0 1.5px var(--ink);
+      }
+      .pcard .h {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      .pcard .h b {
+        font-size: 17px;
+      }
+      .badge {
+        font-size: 11px;
+        font-weight: 700;
+        background: var(--lime);
+        color: var(--on);
+        padding: 3px 9px;
+        border-radius: 99px;
+      }
+      .pcard .stats div {
+        background: var(--soft);
+      }
+      .pcard .stats small {
+        opacity: 1;
+        color: var(--sub);
+      }
+      .tabbar {
+        position: fixed;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+        z-index: 20;
+        display: flex;
+        gap: 2px;
+        align-items: center;
+        background: #121212;
+        border-radius: 999px;
+        padding: 6px;
+        box-shadow: 0 14px 34px rgba(0, 0, 0, 0.3);
+        width: min(calc(100% - 28px), 420px);
+      }
+      .tabbar button {
+        flex: 1;
+        background: transparent;
+        color: #8d8a80;
+        padding: 9px 0 7px;
+        border-radius: 999px;
+        display: grid;
+        justify-items: center;
+        gap: 2px;
+        font-size: 10px;
+        font-weight: 600;
+      }
+      .tabbar button.on {
+        color: var(--lime);
+      }
+      .tabbar svg {
+        width: 22px;
+        height: 22px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .tabbar button.plus {
+        flex: 0 0 52px;
+        height: 52px;
+        padding: 0;
+        background: var(--lime);
+        color: #121212;
+        align-content: center;
+      }
+      .tabbar button.plus svg {
+        stroke-width: 2.6;
+      }
+      .tabbar button.plus span {
+        display: none;
+      }
+      #scrim {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s;
+        z-index: 30;
+      }
+      #scrim.on {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      #sheet {
+        position: fixed;
+        left: 50%;
+        bottom: 0;
+        transform: translate(-50%, 105%);
+        width: min(100%, 520px);
+        background: var(--card);
+        border-radius: 28px 28px 0 0;
+        padding: 10px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+        z-index: 31;
+        transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+        max-height: 90vh;
+        overflow: auto;
+      }
+      #sheet.on {
+        transform: translate(-50%, 0);
+      }
+      .grab {
+        width: 40px;
+        height: 4px;
+        border-radius: 9px;
+        background: var(--line);
+        margin: 0 auto 14px;
+      }
+      #sheet h3 {
+        margin: 0 0 14px;
+        font-size: 18px;
+      }
+      .sb {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+      }
+      .sb button {
+        flex: 1;
+      }
+      .helper {
+        color: var(--sub);
+        font-size: 13px;
+        margin: 0 0 12px;
+      }
+      .toast {
+        position: fixed;
+        left: 50%;
+        top: calc(env(safe-area-inset-top, 0px) + 14px);
+        transform: translate(-50%, -20px);
+        background: var(--ink);
+        color: var(--bg);
+        padding: 10px 18px;
+        border-radius: 99px;
+        font-weight: 600;
+        font-size: 13px;
+        opacity: 0;
+        pointer-events: none;
+        transition: 0.2s;
+        z-index: 40;
+      }
+      .toast.show {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+      .row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .row button {
+        flex: 1;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+          animation: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="top">
+      <div class="top-inner">
+        <b id="title">Home</b
+        ><span class="pill" id="pill" data-act="tab" data-v="cutoffs"
+          ><i></i><span id="pillTxt">No cutoff</span></span
+        >
+      </div>
+    </header>
+    <div id="app">
+      <section class="view" id="v-home"></section>
+      <section class="view" id="v-add"></section>
+      <section class="view" id="v-history"></section>
+      <section class="view" id="v-loans"></section>
+      <section class="view" id="v-cutoffs"></section>
+      <section class="view" id="v-more"></section>
+    </div>
+    <nav class="tabbar" id="tabbar"></nav>
+    <div id="scrim"></div>
+    <div id="sheet" role="dialog" aria-modal="true"></div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script>
+      let state = {
+        categories: ["Food", "Transportation", "Bills", "Others"],
+        paymentMethods: [
+          "Cash",
+          "Debit card",
+          "Credit card",
+          "Bank transfer",
+          "E-wallet",
+          "Other",
+        ],
+        periods: {},
+        loans: [],
+        previousSavings: 0,
+        loanReminderDays: 7,
+        theme: "system",
+      };
+      let active = null,
+        view = "home",
+        mode = "expense",
+        filter = "all",
+        loansView = "loans",
+        paymentLoanId = null,
+        addCat = null,
+        addDate = null;
+      const LS = "budget-tracker-autosave",
+        $ = (s) => document.querySelector(s);
+      const THEMES = ["system", "light", "dark", "ocean", "forest", "lavender"];
+      const sum = (a) => a.reduce((s, x) => s + x.amt, 0);
+      const fmt = (n) =>
+        (n < 0 ? "-" : "") +
+        "₱" +
+        Math.abs(n).toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        });
+      const esc = (v) =>
+        String(v).replace(
+          /[&<>'"]/g,
+          (c) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              "'": "&#39;",
+              '"': "&quot;",
+            })[c],
+        );
+      const today = () => {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      };
+      const dlabel = (d) =>
+        d === today()
+          ? "Today"
+          : new Date(d + "T00:00").toLocaleDateString(undefined, {
+              weekday: "short",
+              month: "short",
+              day: "numeric",
+            });
+      const tlabel = (t) => {
+        const d = new Date(t);
+        return Number.isNaN(d.getTime())
+          ? ""
+          : d.toLocaleTimeString(undefined, {
+              hour: "numeric",
+              minute: "2-digit",
+            });
+      };
+      const P = () => active && state.periods[active];
+      function totals(k) {
+        const p = state.periods[k],
+          income =
+            p.salary + sum(p.income.filter((entry) => !entry.borrowedFunds)),
+          borrowed = sum(p.income.filter((entry) => entry.borrowedFunds)),
+          expenses = sum(p.expenses.filter((entry) => !entry.loanPayment));
+        return {
+          income,
+          borrowed,
+          expenses,
+          remaining: income + borrowed - expenses,
+        };
+      }
+      function saved() {
+        return Object.keys(state.periods).reduce((t, k) => {
+          const total = totals(k);
+          return t + total.income - total.expenses;
+        }, state.previousSavings || 0);
+      }
+      let tt;
+      function toast(m) {
+        const t = $("#toast");
+        t.textContent = m;
+        t.classList.add("show");
+        clearTimeout(tt);
+        tt = setTimeout(() => t.classList.remove("show"), 2200);
+      }
+      function autosave() {
+        try {
+          localStorage.setItem(
+            LS,
+            JSON.stringify({ state, activePeriodKey: active }),
+          );
+        } catch (e) {}
+      }
+      function applyLoaded(p) {
+        state = {
+          categories: p.categories,
+          paymentMethods: Array.isArray(p.paymentMethods)
+            ? p.paymentMethods
+            : [
+                "Cash",
+                "Debit card",
+                "Credit card",
+                "Bank transfer",
+                "E-wallet",
+                "Other",
+              ],
+          periods: p.periods,
+          loans: Array.isArray(p.loans) ? p.loans : [],
+          previousSavings: p.previousSavings || 0,
+          loanReminderDays:
+            Number.isInteger(p.loanReminderDays) &&
+            p.loanReminderDays >= 0 &&
+            p.loanReminderDays <= 60
+              ? p.loanReminderDays
+              : 7,
+          theme: THEMES.includes(p.theme) ? p.theme : "system",
+        };
+        setTheme(state.theme);
+        const ks = Object.keys(state.periods).sort();
+        active =
+          p.activePeriodKey && state.periods[p.activePeriodKey]
+            ? p.activePeriodKey
+            : ks.length
+              ? ks[ks.length - 1]
+              : null;
+      }
+      function autoload() {
+        try {
+          const r = localStorage.getItem(LS);
+          if (!r) return;
+          const p = JSON.parse(r);
+          if (p.state && p.state.categories && p.state.periods)
+            applyLoaded({ ...p.state, activePeriodKey: p.activePeriodKey });
+        } catch (e) {}
+      }
+      function setTheme(theme) {
+        state.theme = THEMES.includes(theme) ? theme : "system";
+        document.documentElement.dataset.theme = state.theme;
+      }
 
-/* ---------- icons / tabs ---------- */
-const IC={home:'<path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"/>',add:'<path d="M12 5v14M5 12h14"/>',history:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',loans:'<path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM16 8.5c-.6-.8-1.6-1.2-3-1.2-1.7 0-2.8.8-2.8 2s1 1.8 2.8 2.2 2.8 1 2.8 2.2-1.1 2-2.8 2c-1.4 0-2.5-.5-3.1-1.4M12 5.5v13"/>',cutoffs:'<path d="M3 5h18v16H3zM3 10h18M8 3v4M16 3v4"/>',more:'<path d="M5 12h.01M12 12h.01M19 12h.01" stroke-width="3.4"/>'};
-const TABS=[["home","Home"],["history","History"],["add","Add"],["loans","Loans"],["more","More"]];
-function renderTabs(){$("#tabbar").innerHTML=TABS.map(([v,l])=>`<button class="${v==="add"?"plus ":""}${view===v?"on":""}" data-act="tab" data-v="${v}" aria-label="${l}"><svg viewBox="0 0 24 24">${IC[v]}</svg><span>${l}</span></button>`).join("")}
+      /* ---------- icons / tabs ---------- */
+      const IC = {
+        home: '<path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"/>',
+        add: '<path d="M12 5v14M5 12h14"/>',
+        history:
+          '<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+        loans:
+          '<path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM16 8.5c-.6-.8-1.6-1.2-3-1.2-1.7 0-2.8.8-2.8 2s1 1.8 2.8 2.2 2.8 1 2.8 2.2-1.1 2-2.8 2c-1.4 0-2.5-.5-3.1-1.4M12 5.5v13"/>',
+        cutoffs: '<path d="M3 5h18v16H3zM3 10h18M8 3v4M16 3v4"/>',
+        more: '<path d="M5 12h.01M12 12h.01M19 12h.01" stroke-width="3.4"/>',
+      };
+      const TABS = [
+        ["home", "Home"],
+        ["history", "History"],
+        ["add", "Add"],
+        ["loans", "Loans"],
+        ["more", "More"],
+      ];
+      function renderTabs() {
+        $("#tabbar").innerHTML = TABS.map(
+          ([v, l]) =>
+            `<button class="${v === "add" ? "plus " : ""}${view === v ? "on" : ""}" data-act="tab" data-v="${v}" aria-label="${l}"><svg viewBox="0 0 24 24">${IC[v]}</svg><span>${l}</span></button>`,
+        ).join("");
+      }
 
-/* ---------- views ---------- */
-const emptyCard=(t,b,v)=>`<div class="card empty"><b>${t}</b><button data-act="tab" data-v="${v}">${b}</button></div>`;
-function itemRow(type,i,x,showMethod=true){const inc=type==="i",time=x.createdAt?tlabel(x.createdAt):"",detail=`${inc?"Income":esc(x.cat)}${showMethod&&x.method?` · ${esc(x.method)}`:""}`;return`<div class="item" data-act="edit" data-type="${type}" data-i="${i}"><div class="ico ${inc?"inc":""}">${inc?"+":esc((x.cat||"?")[0].toUpperCase())}</div><div class="m"><b>${esc(x.desc||x.cat)}</b><small>${detail} · ${dlabel(x.date||active)}${time?` · ${esc(time)}`:""}</small></div><div class="amt ${inc?"in":""}">${inc?"+":"-"}${fmt(x.amt).replace("-","")}</div></div>`}
+      /* ---------- views ---------- */
+      const emptyCard = (t, b, v) =>
+        `<div class="card empty"><b>${t}</b><button data-act="tab" data-v="${v}">${b}</button></div>`;
+      function itemRow(type, i, x, showMethod = true) {
+        const inc = type === "i" || type === "b",
+          borrowed = type === "b" || !!x.borrowedFunds,
+          payment = !!x.loanPayment,
+          time = x.createdAt ? tlabel(x.createdAt) : "",
+          account =
+            (x.creditCharge || x.borrowedFunds) && x.loanId
+              ? state.loans.find((loan) => loan.id === x.loanId)
+              : null,
+          detail = payment
+            ? `Credit repayment${showMethod && x.method ? ` · ${esc(x.method)}` : ""}`
+            : `${borrowed ? "Borrowed funds" : inc ? "Income" : esc(x.cat)}${showMethod && x.method ? ` · ${esc(x.method)}` : ""}${showMethod && account ? ` · ${esc(loanParty(account))}` : ""}`;
+        return `<div class="item" data-act="edit" data-type="${type}" data-i="${i}"><div class="ico ${inc && !borrowed ? "inc" : ""}">${payment ? "↘" : borrowed ? "↗" : inc ? "+" : esc((x.cat || "?")[0].toUpperCase())}</div><div class="m"><b>${esc(x.desc || x.cat)}</b><small>${detail} · ${dlabel(x.date || active)}${time ? ` · ${esc(time)}` : ""}</small></div><div class="amt ${inc && !borrowed ? "in" : ""}">${inc ? "+" : payment ? "↘" : "-"}${fmt(x.amt).replace("-", "")}</div></div>`;
+      }
 
-function renderHome(){
-  const el=$("#v-home"),p=P();
-  if(!p){el.innerHTML=emptyCard("Welcome 👋","Set up cutoff","cutoffs")+loanAnalyticsCard();return}
-  const t=totals(active),td=today(),C=2*Math.PI*54;
-  const pct=t.income>0?Math.min(t.expenses/t.income,1):t.expenses>0?1:0,over=t.remaining<0;
-  const tx=p.expenses.map((e,i)=>[i,e]).filter(([i,e])=>(e.date||active)===td);
-  const byCat={};p.expenses.forEach(e=>byCat[e.cat]=(byCat[e.cat]||0)+e.amt);
-  const ents=Object.entries(byCat).sort((a,b)=>b[1]-a[1]),max=ents.length?ents[0][1]:1;
-  el.innerHTML=`<div class="hero"><div class="ringwrap"><svg class="ring" viewBox="0 0 128 128"><circle cx="64" cy="64" r="54" stroke="rgba(255,255,255,.1)"/><circle cx="64" cy="64" r="54" stroke="${over?"#ff8a85":"var(--lime)"}" stroke-dasharray="${pct*C} ${C}"/></svg><div class="ringc"><small>LEFT</small><b class="${over?"neg":"lime"}">${fmt(t.remaining)}</b></div></div>
-  <div class="stats"><div><small>Income</small><b>${fmt(t.income)}</b></div><div><small>Spent</small><b>${fmt(t.expenses)}</b></div><div><small>Today</small><b>${fmt(sum(tx.map(x=>x[1])))}</b></div></div></div>
-  <div class="card"><h2>Today</h2>${tx.length?tx.slice().reverse().slice(0,5).map(([i,e])=>itemRow("e",i,e,false)).join(""):`<p class="helper" style="margin:0">Nothing spent today.</p>`}</div>
-  <div class="card"><h2>Where it goes</h2>${ents.length?ents.map(([c,a])=>`<div class="bar"><span>${esc(c)}</span><div class="track"><div class="fill" style="width:${a/max*100}%"></div></div><b>${fmt(a)}</b></div>`).join(""):`<p class="helper" style="margin:0">No expenses yet.</p>`}</div>
-  <div class="card" style="display:flex;justify-content:space-between;align-items:center"><span class="helper" style="margin:0">Total saved so far</span><b style="font-size:20px" class="${saved()<0?"neg":""}">${fmt(saved())}</b></div>
-  ${loanAnalyticsCard()}`}
+      function renderHome() {
+        const el = $("#v-home"),
+          p = P();
+        if (!p) {
+          el.innerHTML =
+            emptyCard("Welcome 👋", "Set up cutoff", "cutoffs") +
+            loanAnalyticsCard();
+          return;
+        }
+        const t = totals(active),
+          td = today(),
+          C = 2 * Math.PI * 54;
+        const pct =
+            t.income > 0
+              ? Math.min(t.expenses / t.income, 1)
+              : t.expenses > 0
+                ? 1
+                : 0,
+          over = t.remaining < 0;
+        const tx = p.expenses
+          .map((e, i) => [i, e])
+          .filter(([i, e]) => !e.loanPayment && (e.date || active) === td);
+        const byCat = {};
+        p.expenses
+          .filter((e) => !e.loanPayment)
+          .forEach((e) => (byCat[e.cat] = (byCat[e.cat] || 0) + e.amt));
+        const ents = Object.entries(byCat).sort((a, b) => b[1] - a[1]),
+          max = ents.length ? ents[0][1] : 1;
+        el.innerHTML = `<div class="hero"><div class="ringwrap"><svg class="ring" viewBox="0 0 128 128"><circle cx="64" cy="64" r="54" stroke="rgba(255,255,255,.1)"/><circle cx="64" cy="64" r="54" stroke="${over ? "#ff8a85" : "var(--lime)"}" stroke-dasharray="${pct * C} ${C}"/></svg><div class="ringc"><small>LEFT</small><b class="${over ? "neg" : "lime"}">${fmt(t.remaining)}</b></div></div>
+  <div class="stats"><div><small>Income</small><b>${fmt(t.income)}</b></div><div><small>Spent</small><b>${fmt(t.expenses)}</b></div><div><small>Today</small><b>${fmt(sum(tx.map((x) => x[1])))}</b></div></div></div>
+  <div class="card"><h2>Today</h2>${
+    tx.length
+      ? tx
+          .slice()
+          .reverse()
+          .slice(0, 5)
+          .map(([i, e]) => itemRow("e", i, e, false))
+          .join("")
+      : `<p class="helper" style="margin:0">Nothing spent today.</p>`
+  }</div>
+  <div class="card"><h2>Where it goes</h2>${ents.length ? ents.map(([c, a]) => `<div class="bar"><span>${esc(c)}</span><div class="track"><div class="fill" style="width:${(a / max) * 100}%"></div></div><b>${fmt(a)}</b></div>`).join("") : `<p class="helper" style="margin:0">No expenses yet.</p>`}</div>
+  <div class="card" style="display:flex;justify-content:space-between;align-items:center"><span class="helper" style="margin:0">Total saved so far</span><b style="font-size:20px" class="${saved() < 0 ? "neg" : ""}">${fmt(saved())}</b></div>
+  ${loanAnalyticsCard()}`;
+      }
 
-function loanAnalyticsCard(){
-  const groups=loanGroups();
-  const owed=groups.filter(loan=>loan.direction==="borrowed").reduce((total,loan)=>total+Math.max(0,loanTotal(loan)-loanPaid(loan)),0);
-  const receivable=groups.filter(loan=>loan.direction==="lent").reduce((total,loan)=>total+Math.max(0,loanTotal(loan)-loanPaid(loan)),0);
-  const p=P();
-  const paid=p?sum(p.expenses.filter(entry=>entry.loanId)):0;
-  const received=p?sum(p.income.filter(entry=>entry.loanId)):0;
-  const reminders=state.loanReminderDays?groups.map(loan=>({loan,balance:Math.max(0,loanTotal(loan)-loanPaid(loan)),due:monthlyDueInfo(loan.dueDay)})).filter(item=>item.balance>0&&item.due&&item.due.days<=state.loanReminderDays).sort((a,b)=>a.due.date-b.due.date):[];
-  return`<div class="card"><div class="home-loan-heading"><h2>Loan snapshot</h2><button class="ghost" data-act="tab" data-v="loans">View loans</button></div><div class="home-loan-stats"><div><small>You owe</small><b>${fmt(owed)}</b></div><div><small>Owed to you</small><b>${fmt(receivable)}</b></div>${p?`<div><small>Repaid this cutoff</small><b>${fmt(paid)}</b></div><div><small>Received this cutoff</small><b>${fmt(received)}</b></div>`:""}</div>${reminders.length?`<div class="loan-reminders"><h2>Due within ${state.loanReminderDays} ${state.loanReminderDays===1?"day":"days"}</h2>${reminders.map(({loan,balance,due})=>`<div class="loan-reminder"><span><strong>${esc(loan.party)}</strong><small>${due.label}</small></span><b>${fmt(balance)}</b></div>`).join("")}</div>`:""}</div>`;
-}
+      function loanAnalyticsCard() {
+        const groups = loanGroups();
+        const owed = groups
+          .filter((loan) => loan.direction === "borrowed")
+          .reduce(
+            (total, loan) =>
+              total + Math.max(0, loanTotal(loan) - loanPaid(loan)),
+            0,
+          );
+        const receivable = groups
+          .filter((loan) => loan.direction === "lent")
+          .reduce(
+            (total, loan) =>
+              total + Math.max(0, loanTotal(loan) - loanPaid(loan)),
+            0,
+          );
+        const p = P();
+        const borrowed = p ? totals(active).borrowed : 0;
+        const paid = p
+          ? sum(
+              p.expenses.filter((entry) => entry.loanId && !entry.creditCharge),
+            )
+          : 0;
+        const received = p
+          ? sum(
+              p.income.filter((entry) => entry.loanId && !entry.borrowedFunds),
+            )
+          : 0;
+        const reminders = state.loanReminderDays
+          ? groups
+              .map((loan) => ({
+                loan,
+                balance: Math.max(0, loanTotal(loan) - loanPaid(loan)),
+                due: loanDueInfo(loan),
+              }))
+              .filter(
+                (item) =>
+                  item.balance > 0 &&
+                  item.due &&
+                  item.due.days <= state.loanReminderDays,
+              )
+              .sort((a, b) => a.due.date - b.due.date)
+          : [];
+        return `<div class="card"><div class="home-loan-heading"><h2>Loan snapshot</h2><button class="ghost" data-act="tab" data-v="loans">View loans</button></div><div class="home-loan-stats"><div><small>You owe</small><b>${fmt(owed)}</b></div><div><small>Owed to you</small><b>${fmt(receivable)}</b></div>${p ? `<div><small>Borrowed this cutoff</small><b>${fmt(borrowed)}</b></div><div><small>Repaid this cutoff</small><b>${fmt(paid)}</b></div><div><small>Received this cutoff</small><b>${fmt(received)}</b></div>` : ""}</div>${reminders.length ? `<div class="loan-reminders"><h2>Loan reminders</h2>${reminders.map(({ loan, balance, due }) => `<div class="loan-reminder"><span><strong>${esc(loan.party)}</strong><small>${due.label}</small></span><b>${fmt(balance)}</b></div>`).join("")}</div>` : ""}</div>`;
+      }
 
-function renderAdd(){
-  const el=$("#v-add");
-  const modes=`<div class="seg"><button class="${mode==="expense"?"on":""}" data-act="mode" data-m="expense">Expense</button><button class="${mode==="income"?"on":""}" data-act="mode" data-m="income">Income</button></div>`;
-  if(!P()){el.innerHTML=modes+emptyCard("No cutoff selected","Go to cutoffs","cutoffs");return}
-  if(!addCat||!state.categories.includes(addCat))addCat=state.categories[0];
-  el.innerHTML=modes+`
+      function renderAdd() {
+        const el = $("#v-add");
+        const modes = `<div class="seg"><button class="${mode === "expense" ? "on" : ""}" data-act="mode" data-m="expense">Expense</button><button class="${mode === "income" ? "on" : ""}" data-act="mode" data-m="income">Income</button><button class="${mode === "borrowed" ? "on" : ""}" data-act="mode" data-m="borrowed">Borrow</button></div>`;
+        if (!P()) {
+          el.innerHTML =
+            modes + emptyCard("No cutoff selected", "Go to cutoffs", "cutoffs");
+          return;
+        }
+        if (!addCat || !state.categories.includes(addCat))
+          addCat = state.categories[0];
+        const creditAccounts =
+          mode !== "income"
+            ? loanGroups().filter((loan) => loan.creditAccount)
+            : [];
+        el.innerHTML =
+          modes +
+          `
   <div class="big"><span>₱</span><input type="number" id="aAmt" step="0.01" inputmode="decimal" placeholder="0.00" aria-label="Amount" /></div>
-  ${mode==="expense"?`<label>Category</label><div class="chips">${state.categories.map(c=>`<button class="chip ${c===addCat?"on":""}" data-act="cat" data-c="${esc(c)}">${esc(c)}</button>`).join("")}</div>`:""}
-  ${mode==="expense"&&state.paymentMethods.length?`<div class="field"><label for="aMethod">Payment method (optional)</label><select id="aMethod"><option value="">Not specified</option>${state.paymentMethods.map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join("")}</select></div>`:""}
-  <div class="two"><div class="field"><label>Note (optional)</label><input type="text" id="aDesc" placeholder="${mode==="expense"?"e.g. Lunch":"e.g. Allowance"}" /></div><div class="field"><label>Date</label><input type="date" id="aDate" value="${addDate||today()}" /></div></div>
-  <button class="cta" data-act="add">${mode==="expense"?"Add expense":"Add income"}</button>`}
+  ${mode === "expense" ? `<label>Category</label><div class="chips">${state.categories.map((c) => `<button class="chip ${c === addCat ? "on" : ""}" data-act="cat" data-c="${esc(c)}">${esc(c)}</button>`).join("")}</div>` : ""}
+  ${state.paymentMethods.length ? `<div class="field"><label for="aMethod">${mode === "expense" ? "Payment method" : "Received into"} (optional)</label><select id="aMethod"><option value="">Not specified</option>${state.paymentMethods.map((m) => `<option value="${esc(m)}">${esc(m)}</option>`).join("")}</select></div>` : ""}
+  ${mode === "borrowed" || creditAccounts.length ? `<div class="field"><label for="aCreditAccount">${mode === "borrowed" ? "Cash advance from" : "Charge to"} credit / pay-later account${mode === "borrowed" ? "" : " (optional)"}</label><select id="aCreditAccount"><option value="">${creditAccounts.length ? (mode === "borrowed" ? "Select account" : "Not tracked as credit") : "No tracked accounts"}</option>${creditAccounts.map((loan) => `<option value="${esc(loan.id)}">${esc(loan.party)}${loan.creditLimit ? ` · ${fmt(Math.max(0, loan.creditLimit - (loanTotal(loan) - loanPaid(loan))))} available` : ""}</option>`).join("")}</select></div>${mode === "borrowed" ? `${creditAccounts.length ? '<p class="helper">This is borrowed, not income. It adds to available funds and your account balance.</p>' : '<p class="helper">Set up a tracked card or pay-later account first.</p><button class="ghost" data-act="tab" data-v="loans">Go to Loans</button>'}` : ""}` : ""}
+  <div class="two"><div class="field"><label>Note (optional)</label><input type="text" id="aDesc" placeholder="${mode === "expense" ? "e.g. Lunch" : mode === "borrowed" ? "e.g. Cash advance" : "e.g. Allowance"}" /></div><div class="field"><label>Date</label><input type="date" id="aDate" value="${addDate || today()}" /></div></div>
+  <button class="cta" data-act="add">${mode === "expense" ? "Add expense" : mode === "borrowed" ? "Add borrowed funds" : "Add income"}</button>`;
+      }
 
-function renderHistory(){
-  const el=$("#v-history"),p=P();
-  if(!p){el.innerHTML=emptyCard("No cutoff selected","Go to cutoffs","cutoffs");return}
-  let L=[];
-  if(filter!=="income")p.expenses.forEach((x,i)=>L.push({t:"e",i,x}));
-  if(filter!=="expense")p.income.forEach((x,i)=>L.push({t:"i",i,x}));
-  L.sort((a,b)=>(b.x.date||active).localeCompare(a.x.date||active)||(b.x.createdAt||"").localeCompare(a.x.createdAt||"")||b.i-a.i);
-  const groups={};L.forEach(o=>(groups[o.x.date||active]=groups[o.x.date||active]||[]).push(o));
-  const seg=[["all","All"],["expense","Expenses"],["income","Income"]].map(([f,l])=>`<button class="${filter===f?"on":""}" data-act="filter" data-f="${f}">${l}</button>`).join("");
-  el.innerHTML=`<div class="seg">${seg}</div>`+(L.length?Object.keys(groups).sort().reverse().map(d=>{const g=groups[d],spent=sum(g.filter(o=>o.t==="e").map(o=>o.x));return`<div class="day"><span>${dlabel(d)}</span><span>${spent?"-"+fmt(spent).replace("-",""):""}</span></div><div class="card" style="padding:4px 16px">${g.map(o=>itemRow(o.t,o.i,o.x)).join("")}</div>`}).join(""):`<div class="card empty"><b>Nothing here yet</b></div>`)}
+      function renderHistory() {
+        const el = $("#v-history"),
+          p = P();
+        if (!p) {
+          el.innerHTML = emptyCard(
+            "No cutoff selected",
+            "Go to cutoffs",
+            "cutoffs",
+          );
+          return;
+        }
+        let L = [];
+        if (filter !== "income" && filter !== "borrowed")
+          p.expenses.forEach((x, i) => L.push({ t: "e", i, x }));
+        if (filter !== "expense" && filter !== "borrowed")
+          p.income.forEach((x, i) => {
+            if (!x.borrowedFunds) L.push({ t: "i", i, x });
+          });
+        if (filter === "all" || filter === "borrowed")
+          p.income.forEach((x, i) => {
+            if (x.borrowedFunds) L.push({ t: "b", i, x });
+          });
+        L.sort(
+          (a, b) =>
+            (b.x.date || active).localeCompare(a.x.date || active) ||
+            (b.x.createdAt || "").localeCompare(a.x.createdAt || "") ||
+            b.i - a.i,
+        );
+        const groups = {};
+        L.forEach((o) =>
+          (groups[o.x.date || active] = groups[o.x.date || active] || []).push(
+            o,
+          ),
+        );
+        const seg = [
+          ["all", "All"],
+          ["expense", "Expenses"],
+          ["income", "Income"],
+          ["borrowed", "Borrowed"],
+        ]
+          .map(
+            ([f, l]) =>
+              `<button class="${filter === f ? "on" : ""}" data-act="filter" data-f="${f}">${l}</button>`,
+          )
+          .join("");
+        el.innerHTML =
+          `<div class="seg">${seg}</div>` +
+          (L.length
+            ? Object.keys(groups)
+                .sort()
+                .reverse()
+                .map((d) => {
+                  const g = groups[d],
+                    spent = sum(
+                      g
+                        .filter((o) => o.t === "e" && !o.x.loanPayment)
+                        .map((o) => o.x),
+                    );
+                  return `<div class="day"><span>${dlabel(d)}</span><span>${spent ? "-" + fmt(spent).replace("-", "") : ""}</span></div><div class="card" style="padding:4px 16px">${g.map((o) => itemRow(o.t, o.i, o.x)).join("")}</div>`;
+                })
+                .join("")
+            : `<div class="card empty"><b>Nothing here yet</b></div>`);
+      }
 
-function loanPaid(loan){
-  const ids=new Set(loan.loans?loan.loans.map(item=>item.id):[loan.id]);
-  let paid=0;
-  Object.values(state.periods).forEach(p=>{
-    const entries=loan.direction==="borrowed"?p.expenses:p.income;
-    entries.forEach(x=>{if(ids.has(x.loanId))paid+=x.amt});
-  });
-  return paid;
-}
-const loanParty=loan=>loan.party||loan.person||"Loan";
-const loanSourceKey=loan=>`${loan.direction}:${loanParty(loan).trim().toLocaleLowerCase()}`;
-function loanGroups(){
-  const groups=new Map();
-  (state.loans||[]).forEach(loan=>{
-    const key=loanSourceKey(loan);
-    if(!groups.has(key))groups.set(key,{id:loan.id,key,direction:loan.direction,party:loanParty(loan),loans:[]});
-    groups.get(key).loans.push(loan);
-  });
-  groups.forEach(group=>group.dueDay=group.loans.find(loan=>Number.isInteger(loan.dueDay)&&loan.dueDay>=1&&loan.dueDay<=31)?.dueDay||null);
-  return[...groups.values()];
-}
-function loanTotal(loan){
-  if(loan.loans)return loan.loans.reduce((total,item)=>total+loanTotal(item),0);
-  return loan.amount+(Array.isArray(loan.credits)?loan.credits.reduce((total,credit)=>total+credit.amount,0):0);
-}
-function loanCards(){
-  const query=$("#loanSourceSearch")?.value.trim().toLocaleLowerCase()||"";
-  const loans=loanGroups().filter(loan=>`${loan.party} ${loan.direction==="borrowed"?"borrowed owe":"lent owed"}`.toLocaleLowerCase().includes(query));
-  if(!loans.length)return`<div class="card empty"><b>${query?"No matching sources":"No loans yet"}</b>${query?"":'<button data-act="addloan">Add loan</button>'}</div>`;
-  return loans.slice().reverse().map(loan=>{
-    const paid=loanPaid(loan),total=loanTotal(loan),balance=Math.max(0,total-paid),borrowed=loan.direction==="borrowed";
-    const status=balance<=0?"Fully settled":paid>0?"Partially paid":"Unpaid",statusClass=balance<=0?"settled":paid>0?"partial":"";
-    const due=monthlyDueInfo(loan.dueDay);
-    const credits=loan.loans.flatMap(item=>[
-      ...(item.amount>0?[{loanId:item.id,creditIndex:-1,date:item.date,details:item.note||"Initial credit",amount:item.amount}]:[]),
-      ...(Array.isArray(item.credits)?item.credits.map((credit,index)=>({loanId:item.id,creditIndex:index,date:credit.date,details:credit.details||"Additional credit",amount:credit.amount})):[])
-    ]).sort((a,b)=>(b.date||"").localeCompare(a.date||""));
-    return`<div class="card loan-card"><details class="credit-details"><summary class="credit-summary"><span class="loan-title"><span class="loan-party" title="${esc(loan.party)}">${esc(loan.party)}</span><span class="loan-direction">${borrowed?"You owe":"Owed to you"}</span><span class="loan-status ${statusClass}">${status}</span></span><span>${fmt(balance)} left</span></summary><div class="stats" style="margin:8px"><div><small>Total credit</small><b>${fmt(total)}</b></div><div><small>Paid</small><b>${fmt(paid)}</b></div><div><small>Balance left</small><b>${fmt(balance)}</b></div></div>${due?`<p class="helper" style="margin:8px">Monthly due day ${loan.dueDay} · ${due.label}</p>`:""}<div class="credit-table-wrap" role="region" aria-label="Loan credit history" tabindex="0"><table class="credit-table"><thead><tr><th>Date</th><th>Details</th><th>Amount</th><th>Manage</th></tr></thead><tbody>${credits.map(credit=>`<tr><td>${dlabel(credit.date)}</td><td>${esc(credit.details)}</td><td>+${fmt(credit.amount)}</td><td><div class="credit-actions"><button type="button" class="ghost" data-act="editcredit" data-id="${esc(credit.loanId)}" data-index="${credit.creditIndex}">Edit</button><button type="button" class="ghost bad" data-act="deletecredit" data-id="${esc(credit.loanId)}" data-index="${credit.creditIndex}">Delete</button></div></td></tr>`).join("")}</tbody></table></div><div class="row loan-actions"><button class="ghost" data-act="addcredit" data-id="${esc(loan.id)}">${borrowed?"Add credit":"Add amount lent"}</button><button class="ghost" data-act="setduedate" data-id="${esc(loan.id)}">${due?"Change due day":"Set due day"}</button><button class="ghost bad" data-act="deleteloan" data-id="${esc(loan.id)}">Delete source</button></div></details></div>`;
-  }).join("");
-}
-function editLoanCredit(id,index){
-  const loan=state.loans.find(item=>item.id===id),initial=index<0,credit=initial?loan:loan?.credits?.[index];
-  if(!loan||!credit)return;
-  openSheet(`Edit ${loan.direction==="borrowed"?"credit":"amount lent"}`,`<div class="two"><div class="field"><label for="creditAmount">Amount</label><input type="number" id="creditAmount" step="0.01" min="0.01" inputmode="decimal" value="${credit.amount}"></div><div class="field"><label for="creditDate">Date</label><input type="date" id="creditDate" value="${esc(credit.date)}"></div></div><div class="field"><label for="creditDetails">Details (optional)</label><input type="text" id="creditDetails" value="${esc(initial?loan.note||"":credit.details||"")}"></div>`,
-    ()=>{const amount=parseFloat($("#creditAmount").value),date=$("#creditDate").value;if(!Number.isFinite(amount)||amount<=0||!date){toast("Enter a valid amount and date");return false}
-      const group=loanGroups().find(item=>item.key===loanSourceKey(loan)),paid=group?loanPaid(group):0,total=group?loanTotal(group):0;
-      if(total-credit.amount+amount<paid-0.000001){toast("Amount cannot be lower than payments already recorded");return false}
-      if(initial){loan.amount=amount;loan.date=date;loan.note=$("#creditDetails").value.trim()}
-      else Object.assign(credit,{amount,date,details:$("#creditDetails").value.trim()});
-      render();toast("Credit updated")});
-}
-function deleteLoanCredit(id,index){
-  const loan=state.loans.find(item=>item.id===id),initial=index<0,credit=initial?loan:loan?.credits?.[index];
-  if(!loan||!credit)return;
-  const group=loanGroups().find(item=>item.key===loanSourceKey(loan));
-  if(!group)return;
-  confirmSheet(`Delete ${loan.direction==="borrowed"?"credit":"amount lent"}?`,`Remove this individual ${loan.direction==="borrowed"?"credit":"amount lent"} from ${esc(loanParty(loan))}?`,()=>{
-    const paid=loanPaid(group),total=loanTotal(group);
-    if(total-credit.amount<paid-0.000001){toast("Cannot remove this amount because payments have already been recorded against it");return}
-    if(initial){loan.amount=0;loan.note=""}else loan.credits.splice(index,1);
-    closeSheet();render();toast("Amount removed");
-  });
-}
-function monthlyDueInfo(day,now=new Date()){
-  if(!day)return null;
-  const todayDate=new Date(now.getFullYear(),now.getMonth(),now.getDate());
-  let year=now.getFullYear(),month=now.getMonth();
-  const makeDueDate=(y,m)=>new Date(y,m,Math.min(day,new Date(y,m+1,0).getDate()));
-  let dueDate=makeDueDate(year,month);
-  if(dueDate<todayDate){month++;if(month>11){month=0;year++}dueDate=makeDueDate(year,month)}
-  const days=Math.round((dueDate-todayDate)/86400000);
-  const label=days===0?"Due today":`Due in ${days} ${days===1?"day":"days"}`;
-  return{date:dueDate,label,days};
-}
-function setLoanDueDate(id){
-  const loan=loanGroups().find(x=>x.id===id);if(!loan)return;
-  openSheet(`Monthly due date · ${esc(loan.party)}`,`<div class="field"><label for="dueDay">Due day each month</label><select id="dueDay"><option value="">No monthly due date</option>${Array.from({length:31},(_,i)=>i+1).map(day=>{const suffix=day%100>=11&&day%100<=13?"th":day%10===1?"st":day%10===2?"nd":day%10===3?"rd":"th";return`<option value="${day}" ${loan.dueDay===day?"selected":""}>${day}${suffix} of each month</option>`}).join("")}</select></div>`,
-    ()=>{const value=$("#dueDay").value,day=value?Number(value):null;loan.loans.forEach(item=>{if(day)item.dueDay=day;else delete item.dueDay});render();toast(day?"Monthly due date saved":"Monthly due date removed")});
-}
-function loanContent(){
-  const groups=loanGroups(),borrowed=groups.filter(x=>x.direction==="borrowed").reduce((total,loan)=>total+Math.max(0,loanTotal(loan)-loanPaid(loan)),0),lent=groups.filter(x=>x.direction==="lent").reduce((total,loan)=>total+Math.max(0,loanTotal(loan)-loanPaid(loan)),0);
-  return`<div class="card loan-overview"><h2>Loan overview</h2><div class="stats"><div><small>You owe</small><b>${fmt(borrowed)}</b></div><div><small>Owed to you</small><b>${fmt(lent)}</b></div></div></div><button class="cta" style="margin:0 0 14px" data-act="addloan">＋ Add loan or source</button><div class="loan-list-heading"><h2>Your sources</h2><small>${groups.length} ${groups.length===1?"source":"sources"}</small></div><div class="field"><label for="loanSourceSearch">Search by bank, app, or person</label><input type="search" id="loanSourceSearch" placeholder="e.g. bank or lender"></div><div id="loanSourceList">${loanCards()}</div>`;
-}
-function renderLoans(){
-  const sectionTab=`<div class="seg"><button class="${loansView==="loans"?"on":""}" data-act="loanview" data-view="loans">Loans</button><button class="${loansView==="payments"?"on":""}" data-act="loanview" data-view="payments">Payments</button></div>`;
-  $("#v-loans").innerHTML=sectionTab+(loansView==="loans"?loanContent():renderLoanPayment());
-  if(loansView==="payments")renderPaymentOptions();
-}
-function loansWithBalance(){
-  return loanGroups().map(loan=>({loan,balance:Math.max(0,loanTotal(loan)-loanPaid(loan))})).filter(x=>x.balance>0);
-}
-function renderPaymentOptions(){
-  const list=$("#paymentLoanOptions");if(!list)return;
-  const query=$("#paymentLoanSearch").value.trim().toLocaleLowerCase();
-  const available=loansWithBalance().filter(({loan})=>`${loan.party} ${loan.direction==="borrowed"?"borrowed owe":"lent owed"}`.toLocaleLowerCase().includes(query));
-  list.innerHTML=available.length?available.map(({loan,balance})=>`<button type="button" class="loan-option ${loan.id===paymentLoanId?"selected":""}" data-act="selectloan" data-id="${esc(loan.id)}" aria-pressed="${loan.id===paymentLoanId}"><span>${esc(loan.party)}<small>${loan.direction==="borrowed"?"You owe":"Owed to you"}</small></span><b>${fmt(balance)} left</b></button>`).join(""):`<p class="helper" style="padding:8px;margin:0">No matching loans.</p>`;
-}
-function renderLoanPayment(){
-  const available=loansWithBalance();
-  if(!available.length)return`<div class="card"><h2>Record a payment</h2></div><div class="card empty"><b>No outstanding loans</b><button data-act="tab" data-v="loans">Go to loans</button></div>`;
-  if(!P())return`<div class="card"><h2>Record a payment</h2></div>${emptyCard("No cutoff selected","Go to cutoffs","cutoffs")}`;
-  if(!available.some(({loan})=>loan.id===paymentLoanId))paymentLoanId=available[0].loan.id;
-  const selected=available.find(({loan})=>loan.id===paymentLoanId);
-  const form=`<div class="card"><h2>Record a payment</h2><div class="field"><label for="paymentLoanSearch">Find a loan or source</label><input type="search" id="paymentLoanSearch" placeholder="Search bank, app, or person"></div><div class="loan-picker" id="paymentLoanOptions"></div><div class="two"><div class="field"><label for="paymentAmount">Payment amount</label><input type="number" id="paymentAmount" step="0.01" min="0.01" max="${selected?selected.balance:""}" inputmode="decimal" placeholder="0.00"></div><div class="field"><label for="paymentDate">Date</label><input type="date" id="paymentDate" value="${today()}"></div></div><div class="field"><label for="paymentMethod">Payment method (optional)</label><select id="paymentMethod"><option value="">Not specified</option>${state.paymentMethods.map(method=>`<option value="${esc(method)}">${esc(method)}</option>`).join("")}</select></div><div class="field"><label for="paymentDetails">Details (optional)</label><input type="text" id="paymentDetails" placeholder="e.g. Monthly payment"></div><button class="cta" data-act="recordpayment">Record payment</button></div>`;
-  return form;
-}
-function recordLoanPayment(){
-  const p=P();if(!p){toast("Set up or select a cutoff before recording a payment");go("cutoffs");return}
-  const loan=loanGroups().find(x=>x.id===paymentLoanId);if(!loan){toast("Select a loan source");return}
-  const balance=Math.max(0,loanTotal(loan)-loanPaid(loan)),amount=parseFloat($("#paymentAmount").value),date=$("#paymentDate").value;
-  if(!Number.isFinite(amount)||amount<=0||amount>balance+0.000001||!date){toast("Enter a valid payment amount and date");return}
-  const borrowed=loan.direction==="borrowed",details=$("#paymentDetails").value.trim();
-  const entry={desc:`${borrowed?"Loan repayment":"Loan repayment received"} · ${loan.party}${details?` · ${details}`:""}`,date,amt:amount,createdAt:new Date().toISOString(),loanId:loan.id,method:$("#paymentMethod").value};
-  if(borrowed){entry.cat="Loan repayment";p.expenses.push(entry)}else p.income.push(entry);
-  render();toast("Payment recorded");
-}
-function addLoanCredit(id){
-  const loan=state.loans.find(x=>x.id===id);if(!loan)return;
-  const borrowed=loan.direction==="borrowed";
-  openSheet(`${borrowed?"Add credit":"Add amount lent"} · ${esc(loanParty(loan))}`,`<div class="two"><div class="field"><label>${borrowed?"Additional credit":"Additional amount lent"}</label><input type="number" id="creditAmount" step="0.01" min="0.01" inputmode="decimal" placeholder="0.00"></div><div class="field"><label>Date added</label><input type="date" id="creditDate" value="${today()}"></div></div><div class="field"><label>Details (optional)</label><input type="text" id="creditDetails" placeholder="${borrowed?"e.g. Grocery purchase or cash advance":"e.g. Additional cash lent"}"></div>`,
-    ()=>{const amount=parseFloat($("#creditAmount").value),date=$("#creditDate").value,details=$("#creditDetails").value.trim();if(!Number.isFinite(amount)||amount<=0||!date){toast("Enter a valid amount and date");return false}
-      if(!Array.isArray(loan.credits))loan.credits=[];
-      loan.credits.push({amount,date,details});render();toast("Credit added")});
-}
-function addLoan(){
-  openSheet("Add loan",`<div class="field"><label>Loan direction</label><select id="loanDirection"><option value="borrowed">I borrowed</option><option value="lent">I lent</option></select></div><div class="field"><label id="loanPartyLabel">Lender, bank, or app</label><input type="text" id="loanParty" placeholder="e.g. BPI, GCash, or a person's name"></div><div class="two"><div class="field"><label>Original amount</label><input type="number" id="loanAmount" step="0.01" min="0.01" inputmode="decimal" placeholder="0.00"></div><div class="field"><label>Date started</label><input type="date" id="loanDate" value="${today()}"></div></div><div class="field"><label>Monthly due day (optional)</label><select id="loanDueDay"><option value="">Not set</option>${Array.from({length:31},(_,i)=>i+1).map(day=>{const suffix=day%100>=11&&day%100<=13?"th":day%10===1?"st":day%10===2?"nd":day%10===3?"rd":"th";return`<option value="${day}">${day}${suffix} of each month</option>`}).join("")}</select></div><div class="field"><label>Initial credit details</label><input type="text" id="loanNote" placeholder="e.g. Grocery purchase or cash advance"></div>`,
-    ()=>{const party=$("#loanParty").value.trim(),amount=parseFloat($("#loanAmount").value),date=$("#loanDate").value;if(!party||!date||!Number.isFinite(amount)||amount<=0){toast("Enter a lender or borrower, valid amount, and date");return false}
-      const dueDay=$("#loanDueDay").value;
-      state.loans.push({id:`${Date.now()}-${Math.random().toString(36).slice(2)}`,direction:$("#loanDirection").value,party,amount,date,note:$("#loanNote").value.trim(),...(dueDay?{dueDay:Number(dueDay)}:{})});render();toast("Loan added")});
-  $("#loanDirection").onchange=()=>{const borrowed=$("#loanDirection").value==="borrowed";$("#loanPartyLabel").textContent=borrowed?"Lender, bank, or app":"Borrower";$("#loanParty").placeholder=borrowed?"e.g. BPI, GCash, or a person's name":"e.g. a person's name"};
-}
-function deleteLoan(id){
-  const loan=state.loans.find(x=>x.id===id);if(!loan)return;
-  const group=loanGroups().find(x=>x.id===id);if(!group)return;
-  const ids=new Set(group.loans.map(item=>item.id));
-  confirmSheet("Delete loan source?",`Delete all ${group.loans.length===1?"loan":"loans"} for ${esc(group.party)}? Any payments already recorded will remain in your budget history.`,()=>{state.loans=state.loans.filter(x=>!ids.has(x.id));closeSheet();render();toast("Loan source deleted")});
-}
+      function loanPaid(loan) {
+        const ids = new Set(
+          loan.loans ? loan.loans.map((item) => item.id) : [loan.id],
+        );
+        let paid = 0;
+        Object.values(state.periods).forEach((p) => {
+          const entries = loan.direction === "borrowed" ? p.expenses : p.income;
+          entries.forEach((x) => {
+            if (ids.has(x.loanId) && !x.creditCharge) paid += x.amt;
+          });
+        });
+        return paid;
+      }
+      const loanParty = (loan) => loan.party || loan.person || "Loan";
+      const loanSourceKey = (loan) =>
+        `${loan.direction}:${loan.creditAccount ? "credit" : "loan"}:${loanParty(loan).trim().toLocaleLowerCase()}`;
+      function loanGroups() {
+        const groups = new Map();
+        (state.loans || []).forEach((loan) => {
+          const key = loanSourceKey(loan);
+          if (!groups.has(key))
+            groups.set(key, {
+              id: loan.id,
+              key,
+              direction: loan.direction,
+              party: loanParty(loan),
+              loans: [],
+            });
+          groups.get(key).loans.push(loan);
+        });
+        groups.forEach((group) => {
+          group.dueDay =
+            group.loans.find(
+              (loan) =>
+                Number.isInteger(loan.dueDay) &&
+                loan.dueDay >= 1 &&
+                loan.dueDay <= 31,
+            )?.dueDay || null;
+          group.dueDate =
+            group.loans.find((loan) =>
+              /^\d{4}-\d{2}-\d{2}$/.test(loan.dueDate || ""),
+            )?.dueDate || null;
+          group.creditAccount = group.loans.some((loan) => loan.creditAccount);
+          group.creditLimit = group.creditAccount
+            ? group.loans.reduce(
+                (total, loan) => total + (Number(loan.creditLimit) || 0),
+                0,
+              )
+            : 0;
+        });
+        return [...groups.values()];
+      }
+      function loanTotal(loan) {
+        if (loan.loans)
+          return loan.loans.reduce((total, item) => total + loanTotal(item), 0);
+        const creditCharges = Object.values(state.periods).reduce(
+          (total, period) =>
+            total +
+            period.expenses
+              .filter((entry) => entry.creditCharge && entry.loanId === loan.id)
+              .reduce((amount, entry) => amount + entry.amt, 0) +
+            period.income
+              .filter(
+                (entry) => entry.borrowedFunds && entry.loanId === loan.id,
+              )
+              .reduce((amount, entry) => amount + entry.amt, 0),
+          0,
+        );
+        return (
+          loan.amount +
+          (Array.isArray(loan.credits)
+            ? loan.credits.reduce((total, credit) => total + credit.amount, 0)
+            : 0) +
+          creditCharges
+        );
+      }
+      function paymentMethodOptions(selected = "") {
+        const methods = state.paymentMethods.concat(
+          selected && !state.paymentMethods.includes(selected)
+            ? [selected]
+            : [],
+        );
+        return `<option value="">Not specified</option>${methods.map((method) => `<option value="${esc(method)}" ${method === selected ? "selected" : ""}>${esc(method)}</option>`).join("")}`;
+      }
+      function loanCards() {
+        const query =
+          $("#loanSourceSearch")?.value.trim().toLocaleLowerCase() || "";
+        const loans = loanGroups().filter((loan) =>
+          `${loan.party} ${loan.direction === "borrowed" ? "borrowed owe" : "lent owed"}`
+            .toLocaleLowerCase()
+            .includes(query),
+        );
+        if (!loans.length)
+          return `<div class="card empty"><b>${query ? "No matching sources" : "No loans yet"}</b>${query ? "" : '<button data-act="addloan">Add loan</button>'}</div>`;
+        return loans
+          .slice()
+          .reverse()
+          .map((loan) => {
+            const paid = loanPaid(loan),
+              total = loanTotal(loan),
+              balance = Math.max(0, total - paid),
+              borrowed = loan.direction === "borrowed";
+            const unusedCreditAccount =
+                loan.creditAccount && total <= 0 && paid <= 0,
+              status = unusedCreditAccount
+                ? "Not used"
+                : balance <= 0
+                  ? "Fully settled"
+                  : paid > 0
+                    ? "Partially paid"
+                    : "Unpaid",
+              statusClass = unusedCreditAccount
+                ? ""
+                : balance <= 0
+                  ? "settled"
+                  : paid > 0
+                    ? "partial"
+                    : "";
+            const due = loanDueInfo(loan),
+              dueText = loan.creditAccount
+                ? `Monthly due day ${loan.dueDay} · ${due?.label || ""}`
+                : loan.dueDate
+                  ? `Due ${dlabel(loan.dueDate)} · ${due?.label || ""}`
+                  : due
+                    ? `Monthly due day ${loan.dueDay} · ${due.label}`
+                    : "";
+            const credits = loan.loans
+              .flatMap((item) => [
+                ...(item.amount > 0
+                  ? [
+                      {
+                        loanId: item.id,
+                        creditIndex: -1,
+                        date: item.date,
+                        details: item.note || "Initial credit",
+                        amount: item.amount,
+                        method: item.method,
+                      },
+                    ]
+                  : []),
+                ...(Array.isArray(item.credits)
+                  ? item.credits.map((credit, index) => ({
+                      loanId: item.id,
+                      creditIndex: index,
+                      date: credit.date,
+                      details: credit.details || "Additional credit",
+                      amount: credit.amount,
+                      method: credit.method,
+                    }))
+                  : []),
+                ...Object.entries(state.periods).flatMap(
+                  ([periodKey, period]) =>
+                    [
+                      ...period.expenses.map((entry, entryIndex) =>
+                        entry.creditCharge && entry.loanId === item.id
+                          ? {
+                              charge: true,
+                              loanId: item.id,
+                              periodKey,
+                              entryIndex,
+                              date: entry.date,
+                              details:
+                                entry.desc || entry.cat || "Credit purchase",
+                              amount: entry.amt,
+                              method: entry.method,
+                            }
+                          : null,
+                      ),
+                      ...period.income.map((entry, entryIndex) =>
+                        entry.borrowedFunds && entry.loanId === item.id
+                          ? {
+                              draw: true,
+                              loanId: item.id,
+                              periodKey,
+                              entryIndex,
+                              date: entry.date,
+                              details: entry.desc || "Cash advance",
+                              amount: entry.amt,
+                              method: entry.method,
+                            }
+                          : null,
+                      ),
+                    ].filter(Boolean),
+                ),
+              ])
+              .sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+            const availableCredit = loan.creditLimit
+              ? Math.max(0, loan.creditLimit - balance)
+              : null;
+            return `<div class="card loan-card"><details class="credit-details"><summary class="credit-summary"><span class="loan-title"><span class="loan-party" title="${esc(loan.party)}">${esc(loan.party)}</span><span class="loan-direction">${borrowed ? "You owe" : "Owed to you"}</span><span class="loan-status ${statusClass}">${status}</span></span><span>${fmt(balance)} left</span></summary><div class="stats" style="margin:8px"><div><small>Total credit</small><b>${fmt(total)}</b></div><div><small>Paid</small><b>${fmt(paid)}</b></div><div><small>Balance left</small><b>${fmt(balance)}</b></div>${availableCredit !== null ? `<div><small>Credit limit</small><b>${fmt(loan.creditLimit)}</b></div><div><small>Available credit</small><b>${fmt(availableCredit)}</b></div>` : ""}</div>${due ? `<p class="helper" style="margin:8px">${dueText}</p>` : ""}<div class="credit-table-wrap" role="region" aria-label="Loan credit history" tabindex="0"><table class="credit-table"><thead><tr><th>Date</th><th>Details</th><th>Amount</th><th>${loan.creditAccount ? "Method" : borrowed ? "Received via" : "Paid via"}</th><th>Manage</th></tr></thead><tbody>${credits.map((credit) => `<tr><td>${dlabel(credit.date)}</td><td>${esc(credit.details)}</td><td>+${fmt(credit.amount)}</td><td>${esc(credit.method || "—")}</td><td>${credit.charge || credit.draw ? `<div class="credit-actions"><button type="button" class="ghost" data-act="editcharge" data-type="${credit.draw ? "b" : "e"}" data-period="${esc(credit.periodKey)}" data-index="${credit.entryIndex}">Edit</button><button type="button" class="ghost bad" data-act="deletecharge" data-type="${credit.draw ? "b" : "e"}" data-period="${esc(credit.periodKey)}" data-index="${credit.entryIndex}">Delete</button></div>` : `<div class="credit-actions"><button type="button" class="ghost" data-act="editcredit" data-id="${esc(credit.loanId)}" data-index="${credit.creditIndex}">Edit</button><button type="button" class="ghost bad" data-act="deletecredit" data-id="${esc(credit.loanId)}" data-index="${credit.creditIndex}">Delete</button></div>`}</td></tr>`).join("")}</tbody></table></div><div class="row loan-actions"><button class="ghost" data-act="editloansource" data-id="${esc(loan.id)}">Edit source</button>${loan.creditAccount ? "" : `<button class="ghost" data-act="addcredit" data-id="${esc(loan.id)}">${borrowed ? "Add credit" : "Add amount lent"}</button>`}<button class="ghost" data-act="setduedate" data-id="${esc(loan.id)}">${loan.creditAccount ? (loan.dueDay ? "Change monthly due day" : "Set monthly due day") : loan.dueDate || loan.dueDay ? "Change due date" : "Set due date"}</button><button class="ghost bad" data-act="deleteloan" data-id="${esc(loan.id)}">Delete source</button></div></details></div>`;
+          })
+          .join("");
+      }
+      function editLoanCredit(id, index) {
+        const loan = state.loans.find((item) => item.id === id),
+          initial = index < 0,
+          credit = initial ? loan : loan?.credits?.[index];
+        if (!loan || !credit) return;
+        openSheet(
+          `Edit ${loan.direction === "borrowed" ? "credit" : "amount lent"}`,
+          `<div class="two"><div class="field"><label for="creditAmount">Amount</label><input type="number" id="creditAmount" step="0.01" min="0.01" inputmode="decimal" value="${credit.amount}"></div><div class="field"><label for="creditDate">Date</label><input type="date" id="creditDate" value="${esc(credit.date)}"></div></div><div class="field"><label for="creditDetails">Details (optional)</label><input type="text" id="creditDetails" value="${esc(initial ? loan.note || "" : credit.details || "")}"></div><div class="field"><label for="creditMethod">${loan.direction === "borrowed" ? "Received via / saved to" : "Paid via"} (optional)</label><select id="creditMethod">${paymentMethodOptions(initial ? loan.method : credit.method || "")}</select></div>`,
+          () => {
+            const amount = parseFloat($("#creditAmount").value),
+              date = $("#creditDate").value;
+            if (!Number.isFinite(amount) || amount <= 0 || !date) {
+              toast("Enter a valid amount and date");
+              return false;
+            }
+            const group = loanGroups().find(
+                (item) => item.key === loanSourceKey(loan),
+              ),
+              paid = group ? loanPaid(group) : 0,
+              total = group ? loanTotal(group) : 0;
+            if (total - credit.amount + amount < paid - 0.000001) {
+              toast("Amount cannot be lower than payments already recorded");
+              return false;
+            }
+            if (initial) {
+              loan.amount = amount;
+              loan.date = date;
+              loan.note = $("#creditDetails").value.trim();
+              loan.method = $("#creditMethod").value;
+            } else
+              Object.assign(credit, {
+                amount,
+                date,
+                details: $("#creditDetails").value.trim(),
+                method: $("#creditMethod").value,
+              });
+            render();
+            toast("Credit updated");
+          },
+        );
+      }
+      function editLoanSource(id) {
+        const group = loanGroups().find((item) => item.id === id);
+        if (!group) return;
+        const borrowed = group.direction === "borrowed",
+          creditAccount = group.creditAccount,
+          limit = group.creditLimit || "";
+        openSheet(
+          "Edit loan source",
+          `<div class="field"><label for="sourceName">${borrowed ? "Lender, bank, or app" : "Borrower"}</label><input type="text" id="sourceName" value="${esc(group.party)}"></div>${borrowed ? `<div class="field"><label for="sourceType">Source type</label><select id="sourceType"><option value="loan" ${creditAccount ? "" : "selected"}>Regular loan</option><option value="credit" ${creditAccount ? "selected" : ""}>Credit / pay-later account</option></select></div><div class="field" id="sourceCreditLimitField" ${creditAccount ? "" : "hidden"}><label for="sourceCreditLimit">Credit limit (optional)</label><input type="number" id="sourceCreditLimit" step="0.01" min="0" inputmode="decimal" value="${limit}"></div><p class="helper" id="sourceAccountingNote" ${creditAccount ? "" : "hidden"}>Past transactions stay unchanged. New purchases count as expenses; future repayments reduce the balance without counting as spending again.</p>` : ""}`,
+          () => {
+            const party = $("#sourceName").value.trim(),
+              tracked = borrowed && $("#sourceType").value === "credit",
+              limitValue = tracked ? $("#sourceCreditLimit").value : "",
+              creditLimit = limitValue === "" ? null : parseFloat(limitValue);
+            if (!party) {
+              toast("Enter a source name");
+              return false;
+            }
+            if (
+              tracked &&
+              limitValue !== "" &&
+              (!Number.isFinite(creditLimit) || creditLimit <= 0)
+            ) {
+              toast("Enter a valid credit limit or leave it blank");
+              return false;
+            }
+            const balance = Math.max(0, loanTotal(group) - loanPaid(group));
+            if (
+              tracked &&
+              creditLimit !== null &&
+              creditLimit < balance - 0.000001
+            ) {
+              toast("Credit limit cannot be below the current balance");
+              return false;
+            }
+            if (creditAccount && !tracked) {
+              const ids = new Set(group.loans.map((item) => item.id));
+              const hasTrackedActivity = Object.values(state.periods).some(
+                (period) =>
+                  period.expenses.some(
+                    (entry) =>
+                      ids.has(entry.loanId) &&
+                      (entry.creditCharge || entry.loanPayment),
+                  ) ||
+                  period.income.some(
+                    (entry) => ids.has(entry.loanId) && entry.borrowedFunds,
+                  ),
+              );
+              if (hasTrackedActivity) {
+                toast(
+                  "This account has tracked activity and cannot be changed to a regular loan",
+                );
+                return false;
+              }
+            }
+            group.loans.forEach((item, index) => {
+              item.party = party;
+              if (borrowed && tracked) {
+                item.creditAccount = true;
+                delete item.dueDate;
+                if (index === 0 && creditLimit !== null)
+                  item.creditLimit = creditLimit;
+                else delete item.creditLimit;
+              } else {
+                delete item.creditAccount;
+                delete item.creditLimit;
+                delete item.dueDay;
+              }
+            });
+            render();
+            toast("Loan source updated");
+          },
+        );
+        if (borrowed)
+          $("#sourceType").onchange = () => {
+            $("#sourceCreditLimitField").hidden =
+              $("#sourceType").value !== "credit";
+            $("#sourceAccountingNote").hidden =
+              $("#sourceType").value !== "credit";
+          };
+      }
+      function deleteLoanCredit(id, index) {
+        const loan = state.loans.find((item) => item.id === id),
+          initial = index < 0,
+          credit = initial ? loan : loan?.credits?.[index];
+        if (!loan || !credit) return;
+        const group = loanGroups().find(
+          (item) => item.key === loanSourceKey(loan),
+        );
+        if (!group) return;
+        confirmSheet(
+          `Delete ${loan.direction === "borrowed" ? "credit" : "amount lent"}?`,
+          `Remove this individual ${loan.direction === "borrowed" ? "credit" : "amount lent"} from ${esc(loanParty(loan))}?`,
+          () => {
+            const paid = loanPaid(group),
+              total = loanTotal(group);
+            if (total - credit.amount < paid - 0.000001) {
+              toast(
+                "Cannot remove this amount because payments have already been recorded against it",
+              );
+              return;
+            }
+            if (initial) {
+              loan.amount = 0;
+              loan.note = "";
+            } else loan.credits.splice(index, 1);
+            closeSheet();
+            render();
+            toast("Amount removed");
+          },
+        );
+      }
+      function monthlyDueInfo(day, now = new Date()) {
+        if (!day) return null;
+        const todayDate = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+        );
+        let year = now.getFullYear(),
+          month = now.getMonth();
+        const makeDueDate = (y, m) =>
+          new Date(y, m, Math.min(day, new Date(y, m + 1, 0).getDate()));
+        let dueDate = makeDueDate(year, month);
+        if (dueDate < todayDate) {
+          month++;
+          if (month > 11) {
+            month = 0;
+            year++;
+          }
+          dueDate = makeDueDate(year, month);
+        }
+        const days = Math.round((dueDate - todayDate) / 86400000);
+        const label =
+          days === 0
+            ? "Due today"
+            : `Due in ${days} ${days === 1 ? "day" : "days"}`;
+        return { date: dueDate, label, days };
+      }
+      function singleDueInfo(date, now = new Date()) {
+        if (!date) return null;
+        const [year, month, day] = date.split("-").map(Number),
+          dueDate = new Date(year, month - 1, day),
+          todayDate = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate(),
+          );
+        if (Number.isNaN(dueDate.getTime())) return null;
+        const days = Math.round((dueDate - todayDate) / 86400000);
+        const label =
+          days < 0
+            ? `Overdue by ${Math.abs(days)} ${Math.abs(days) === 1 ? "day" : "days"}`
+            : days === 0
+              ? "Due today"
+              : `Due in ${days} ${days === 1 ? "day" : "days"}`;
+        return { date: dueDate, label, days };
+      }
+      function loanDueInfo(loan) {
+        if (loan.creditAccount) return monthlyDueInfo(loan.dueDay);
+        return loan.dueDate
+          ? singleDueInfo(loan.dueDate)
+          : monthlyDueInfo(loan.dueDay);
+      }
+      function setLoanDueDate(id) {
+        const loan = loanGroups().find((x) => x.id === id);
+        if (!loan) return;
+        const creditAccount = loan.creditAccount;
+        if (creditAccount)
+          openSheet(
+            `Monthly due date · ${esc(loan.party)}`,
+            `<div class="field"><label for="dueDay">Due day each month</label><select id="dueDay"><option value="">No monthly due date</option>${Array.from(
+              { length: 31 },
+              (_, i) => i + 1,
+            )
+              .map((day) => {
+                const suffix =
+                  day % 100 >= 11 && day % 100 <= 13
+                    ? "th"
+                    : day % 10 === 1
+                      ? "st"
+                      : day % 10 === 2
+                        ? "nd"
+                        : day % 10 === 3
+                          ? "rd"
+                          : "th";
+                return `<option value="${day}" ${loan.dueDay === day ? "selected" : ""}>${day}${suffix} of each month</option>`;
+              })
+              .join("")}</select></div>`,
+            () => {
+              const value = $("#dueDay").value,
+                day = value ? Number(value) : null;
+              loan.loans.forEach((item) => {
+                if (day) item.dueDay = day;
+                else delete item.dueDay;
+                delete item.dueDate;
+              });
+              render();
+              toast(
+                day ? "Monthly due date saved" : "Monthly due date removed",
+              );
+            },
+          );
+        else
+          openSheet(
+            `Due date · ${esc(loan.party)}`,
+            `<div class="field"><label for="dueDate">Due date (optional)</label><input type="date" id="dueDate" value="${esc(loan.dueDate || "")}"></div>`,
+            () => {
+              const value = $("#dueDate").value;
+              loan.loans.forEach((item) => {
+                delete item.dueDay;
+                if (value) item.dueDate = value;
+                else delete item.dueDate;
+              });
+              render();
+              toast(value ? "Due date saved" : "Due date removed");
+            },
+          );
+      }
+      function loanContent() {
+        const groups = loanGroups(),
+          borrowed = groups
+            .filter((x) => x.direction === "borrowed")
+            .reduce(
+              (total, loan) =>
+                total + Math.max(0, loanTotal(loan) - loanPaid(loan)),
+              0,
+            ),
+          lent = groups
+            .filter((x) => x.direction === "lent")
+            .reduce(
+              (total, loan) =>
+                total + Math.max(0, loanTotal(loan) - loanPaid(loan)),
+              0,
+            );
+        return `<div class="card loan-overview"><h2>Loan overview</h2><div class="stats"><div><small>You owe</small><b>${fmt(borrowed)}</b></div><div><small>Owed to you</small><b>${fmt(lent)}</b></div></div></div><button class="cta" style="margin:0 0 14px" data-act="addloan">＋ Add loan or source</button><div class="loan-list-heading"><h2>Your sources</h2><small>${groups.length} ${groups.length === 1 ? "source" : "sources"}</small></div><div class="field"><label for="loanSourceSearch">Search by bank, app, or person</label><input type="search" id="loanSourceSearch" placeholder="e.g. bank or lender"></div><div id="loanSourceList">${loanCards()}</div>`;
+      }
+      function renderLoans() {
+        const sectionTab = `<div class="seg"><button class="${loansView === "loans" ? "on" : ""}" data-act="loanview" data-view="loans">Loans</button><button class="${loansView === "payments" ? "on" : ""}" data-act="loanview" data-view="payments">Payments</button></div>`;
+        $("#v-loans").innerHTML =
+          sectionTab +
+          (loansView === "loans" ? loanContent() : renderLoanPayment());
+        if (loansView === "payments") renderPaymentOptions();
+      }
+      function loansWithBalance() {
+        return loanGroups()
+          .map((loan) => ({
+            loan,
+            balance: Math.max(0, loanTotal(loan) - loanPaid(loan)),
+          }))
+          .filter((x) => x.balance > 0);
+      }
+      function renderPaymentOptions() {
+        const list = $("#paymentLoanOptions");
+        if (!list) return;
+        const query = $("#paymentLoanSearch").value.trim().toLocaleLowerCase();
+        const available = loansWithBalance().filter(({ loan }) =>
+          `${loan.party} ${loan.direction === "borrowed" ? "borrowed owe" : "lent owed"}`
+            .toLocaleLowerCase()
+            .includes(query),
+        );
+        list.innerHTML = available.length
+          ? available
+              .map(
+                ({ loan, balance }) =>
+                  `<button type="button" class="loan-option ${loan.id === paymentLoanId ? "selected" : ""}" data-act="selectloan" data-id="${esc(loan.id)}" aria-pressed="${loan.id === paymentLoanId}"><span>${esc(loan.party)}<small>${loan.direction === "borrowed" ? "You owe" : "Owed to you"}</small></span><b>${fmt(balance)} left</b></button>`,
+              )
+              .join("")
+          : `<p class="helper" style="padding:8px;margin:0">No matching loans.</p>`;
+      }
+      function renderLoanPayment() {
+        const available = loansWithBalance();
+        if (!available.length)
+          return `<div class="card"><h2>Record a payment</h2></div><div class="card empty"><b>No outstanding loans</b><button data-act="tab" data-v="loans">Go to loans</button></div>`;
+        if (!P())
+          return `<div class="card"><h2>Record a payment</h2></div>${emptyCard("No cutoff selected", "Go to cutoffs", "cutoffs")}`;
+        if (!available.some(({ loan }) => loan.id === paymentLoanId))
+          paymentLoanId = available[0].loan.id;
+        const selected = available.find(
+          ({ loan }) => loan.id === paymentLoanId,
+        );
+        const form = `<div class="card"><h2>Record a payment</h2><div class="field"><label for="paymentLoanSearch">Find a loan or source</label><input type="search" id="paymentLoanSearch" placeholder="Search bank, app, or person"></div><div class="loan-picker" id="paymentLoanOptions"></div><div class="two"><div class="field"><label for="paymentAmount">Payment amount</label><input type="number" id="paymentAmount" step="0.01" min="0.01" max="${selected ? selected.balance : ""}" inputmode="decimal" placeholder="0.00"></div><div class="field"><label for="paymentDate">Date</label><input type="date" id="paymentDate" value="${today()}"></div></div><div class="field"><label for="paymentMethod">Payment method (optional)</label><select id="paymentMethod"><option value="">Not specified</option>${state.paymentMethods.map((method) => `<option value="${esc(method)}">${esc(method)}</option>`).join("")}</select></div><div class="field"><label for="paymentDetails">Details (optional)</label><input type="text" id="paymentDetails" placeholder="e.g. Monthly payment"></div><button class="cta" data-act="recordpayment">Record payment</button></div>`;
+        return form;
+      }
+      function recordLoanPayment() {
+        const p = P();
+        if (!p) {
+          toast("Set up or select a cutoff before recording a payment");
+          go("cutoffs");
+          return;
+        }
+        const loan = loanGroups().find((x) => x.id === paymentLoanId);
+        if (!loan) {
+          toast("Select a loan source");
+          return;
+        }
+        const balance = Math.max(0, loanTotal(loan) - loanPaid(loan)),
+          amount = parseFloat($("#paymentAmount").value),
+          date = $("#paymentDate").value;
+        if (
+          !Number.isFinite(amount) ||
+          amount <= 0 ||
+          amount > balance + 0.000001 ||
+          !date
+        ) {
+          toast("Enter a valid payment amount and date");
+          return;
+        }
+        const borrowed = loan.direction === "borrowed",
+          details = $("#paymentDetails").value.trim();
+        const entry = {
+          desc: `${borrowed ? "Loan repayment" : "Loan repayment received"} · ${loan.party}${details ? ` · ${details}` : ""}`,
+          date,
+          amt: amount,
+          createdAt: new Date().toISOString(),
+          loanId: loan.id,
+          method: $("#paymentMethod").value,
+          ...(loan.creditAccount ? { loanPayment: true } : {}),
+        };
+        if (borrowed) {
+          entry.cat = "Loan repayment";
+          p.expenses.push(entry);
+        } else p.income.push(entry);
+        render();
+        toast("Payment recorded");
+      }
+      function addLoanCredit(id) {
+        const loan = state.loans.find((x) => x.id === id);
+        if (!loan) return;
+        const borrowed = loan.direction === "borrowed";
+        openSheet(
+          `${borrowed ? "Add credit" : "Add amount lent"} · ${esc(loanParty(loan))}`,
+          `<div class="two"><div class="field"><label>${borrowed ? "Additional credit" : "Additional amount lent"}</label><input type="number" id="creditAmount" step="0.01" min="0.01" inputmode="decimal" placeholder="0.00"></div><div class="field"><label>Date added</label><input type="date" id="creditDate" value="${today()}"></div></div><div class="field"><label>Details (optional)</label><input type="text" id="creditDetails" placeholder="${borrowed ? "e.g. Grocery purchase or cash advance" : "e.g. Additional cash lent"}"></div><div class="field"><label for="creditMethod">${borrowed ? "Received via / saved to" : "Paid via"} (optional)</label><select id="creditMethod">${paymentMethodOptions()}</select></div>`,
+          () => {
+            const amount = parseFloat($("#creditAmount").value),
+              date = $("#creditDate").value,
+              details = $("#creditDetails").value.trim();
+            if (!Number.isFinite(amount) || amount <= 0 || !date) {
+              toast("Enter a valid amount and date");
+              return false;
+            }
+            if (!Array.isArray(loan.credits)) loan.credits = [];
+            loan.credits.push({
+              amount,
+              date,
+              details,
+              method: $("#creditMethod").value,
+            });
+            render();
+            toast("Credit added");
+          },
+        );
+      }
+      function addLoan() {
+        openSheet(
+          "Add loan",
+          `<div class="field"><label>Loan direction</label><select id="loanDirection"><option value="borrowed">I borrowed</option><option value="lent">I lent</option></select></div><div class="field" id="sourceTypeField"><label for="sourceType">Source type</label><select id="sourceType"><option value="loan" selected>Regular loan</option><option value="credit">Credit / pay-later account</option></select></div><div class="field"><label id="loanPartyLabel">Lender, bank, or app</label><input type="text" id="loanParty" placeholder="e.g. BPI, GCash, or a person's name"></div><div id="loanInitialFields"><div class="two"><div class="field"><label id="loanAmountLabel">Original amount</label><input type="number" id="loanAmount" step="0.01" min="0.01" inputmode="decimal" placeholder="0.00"></div><div class="field"><label>Date started</label><input type="date" id="loanDate" value="${today()}"></div></div><div class="field"><label for="loanMethod" id="loanMethodLabel">Received via / saved to (optional)</label><select id="loanMethod">${paymentMethodOptions()}</select></div><div class="field" id="loanSingleDueDateField"><label for="loanDueDate">Due date (optional)</label><input type="date" id="loanDueDate"></div><div class="field"><label id="loanNoteLabel">Initial credit details</label><input type="text" id="loanNote" placeholder="e.g. Grocery purchase or cash advance"></div></div><div class="field" id="loanMonthlyDueDayField" hidden><label>Monthly due day (optional)</label><select id="loanDueDay"><option value="">Not set</option>${Array.from(
+            { length: 31 },
+            (_, i) => i + 1,
+          )
+            .map((day) => {
+              const suffix =
+                day % 100 >= 11 && day % 100 <= 13
+                  ? "th"
+                  : day % 10 === 1
+                    ? "st"
+                    : day % 10 === 2
+                      ? "nd"
+                      : day % 10 === 3
+                        ? "rd"
+                        : "th";
+              return `<option value="${day}">${day}${suffix} of each month</option>`;
+            })
+            .join(
+              "",
+            )}</select></div><div id="creditAccountFields" hidden><div class="field"><label for="creditLimit">Credit limit (optional)</label><input type="number" id="creditLimit" step="0.01" min="0" inputmode="decimal" placeholder="e.g. 30000"></div><p class="helper">This account starts at zero. Record cash advances in Borrowed and purchases as expenses linked to this account.</p></div>`,
+          () => {
+            const party = $("#loanParty").value.trim(),
+              creditAccount =
+                $("#loanDirection").value === "borrowed" &&
+                $("#sourceType").value === "credit",
+              amount = creditAccount ? 0 : parseFloat($("#loanAmount").value),
+              date = creditAccount ? today() : $("#loanDate").value,
+              creditLimitValue = $("#creditLimit").value,
+              creditLimit =
+                creditLimitValue === "" ? null : parseFloat(creditLimitValue);
+            if (
+              !party ||
+              (!creditAccount &&
+                (!date || !Number.isFinite(amount) || amount <= 0)) ||
+              (creditAccount &&
+                creditLimit !== null &&
+                (!Number.isFinite(creditLimit) || creditLimit <= 0))
+            ) {
+              toast(
+                creditAccount
+                  ? "Enter a lender and valid credit limit"
+                  : "Enter a lender, valid amount, and date",
+              );
+              return false;
+            }
+            const dueDay = creditAccount ? $("#loanDueDay").value : "",
+              dueDate = !creditAccount ? $("#loanDueDate").value : "";
+            state.loans.push({
+              id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+              direction: $("#loanDirection").value,
+              party,
+              amount,
+              date,
+              note: creditAccount ? "" : $("#loanNote").value.trim(),
+              method: creditAccount ? "" : $("#loanMethod").value,
+              ...(creditAccount
+                ? {
+                    creditAccount: true,
+                    ...(creditLimit !== null ? { creditLimit } : {}),
+                    ...(dueDay ? { dueDay: Number(dueDay) } : {}),
+                  }
+                : {}),
+              ...(!creditAccount && dueDate ? { dueDate } : {}),
+            });
+            render();
+            toast("Loan added");
+          },
+        );
+        const updateLoanForm = () => {
+          const borrowed = $("#loanDirection").value === "borrowed",
+            trackable = borrowed && $("#sourceType").value === "credit";
+          $("#loanPartyLabel").textContent = borrowed
+            ? "Lender, bank, or app"
+            : "Borrower";
+          $("#loanParty").placeholder = borrowed
+            ? "e.g. BPI, GCash, or a person's name"
+            : "e.g. a person's name";
+          $("#loanMethodLabel").textContent = borrowed
+            ? "Received via / saved to (optional)"
+            : "Paid via (optional)";
+          $("#loanNoteLabel").textContent = borrowed
+            ? "Initial credit details"
+            : "Initial amount lent details";
+          $("#loanAmountLabel").textContent = trackable
+            ? "Opening balance"
+            : "Original amount";
+          $("#loanAmount").min = trackable ? "0" : "0.01";
+          $("#sourceTypeField").hidden = !borrowed;
+          $("#loanInitialFields").hidden = trackable;
+          $("#loanSingleDueDateField").hidden = trackable;
+          $("#loanMonthlyDueDayField").hidden = !trackable;
+          $("#creditAccountFields").hidden = !trackable;
+        };
+        $("#loanDirection").onchange = updateLoanForm;
+        $("#sourceType").onchange = updateLoanForm;
+      }
+      function deleteLoan(id) {
+        const loan = state.loans.find((x) => x.id === id);
+        if (!loan) return;
+        const group = loanGroups().find((x) => x.id === id);
+        if (!group) return;
+        if (
+          group.creditAccount &&
+          loanTotal(group) - loanPaid(group) > 0.000001
+        ) {
+          toast("Pay off the tracked balance before deleting this account");
+          return;
+        }
+        const ids = new Set(group.loans.map((item) => item.id));
+        confirmSheet(
+          "Delete loan source?",
+          `Delete all ${group.loans.length === 1 ? "loan" : "loans"} for ${esc(group.party)}? Any payments already recorded will remain in your budget history.`,
+          () => {
+            state.loans = state.loans.filter((x) => !ids.has(x.id));
+            closeSheet();
+            render();
+            toast("Loan source deleted");
+          },
+        );
+      }
+      function editCreditCharge(type, periodKey, index) {
+        const entries =
+          type === "b"
+            ? state.periods[periodKey]?.income
+            : state.periods[periodKey]?.expenses;
+        if (!entries?.[index]) return;
+        active = periodKey;
+        view = "history";
+        render();
+        editEntry(type, index);
+      }
+      function deleteCreditCharge(type, periodKey, index) {
+        const entries =
+          type === "b"
+            ? state.periods[periodKey]?.income
+            : state.periods[periodKey]?.expenses;
+        const entry = entries?.[index];
+        if (!entry) return;
+        confirmSheet(
+          "Delete entry?",
+          `Delete this ${type === "b" ? "borrowed funds" : "credit purchase"} entry?`,
+          () => {
+            entries.splice(index, 1);
+            closeSheet();
+            render();
+            toast("Deleted");
+          },
+        );
+      }
 
-function renderCutoffs(){
-  const keys=Object.keys(state.periods).sort().reverse();
-  $("#v-cutoffs").innerHTML=`<div class="card"><h2>New cutoff</h2><div class="two"><div class="field"><label>Cutoff date</label><input type="date" id="cDate" /></div><div class="field"><label>Salary</label><input type="number" id="cSal" step="0.01" inputmode="decimal" placeholder="0.00" /></div></div><button class="cta" style="margin:0" data-act="savep">Save cutoff</button></div>`+
-  (keys.length?`<h2 style="margin:18px 4px 10px">Your cutoffs</h2>`+keys.map(k=>{const t=totals(k);return`<div class="card pcard ${k===active?"act":""}" data-act="openp" data-k="${k}"><div class="h"><b>${dlabel(k)==="Today"?k:k}</b>${k===active?'<span class="badge">Active</span>':""}<button class="ghost" style="padding:6px 12px;font-size:12px" data-act="editp" data-k="${k}">Edit</button></div><div class="stats"><div><small>Incoming</small><b>${fmt(t.income)}</b></div><div><small>Outgoing</small><b>${fmt(t.expenses)}</b></div><div><small>Remaining</small><b class="${t.remaining<0?"neg":""}">${fmt(t.remaining)}</b></div></div></div>`}).join(""):`<div class="card empty"><b>No cutoffs yet</b></div>`)}
+      function renderCutoffs() {
+        const keys = Object.keys(state.periods).sort().reverse();
+        $("#v-cutoffs").innerHTML =
+          `<div class="card"><h2>New cutoff</h2><div class="two"><div class="field"><label>Cutoff date</label><input type="date" id="cDate" /></div><div class="field"><label>Salary</label><input type="number" id="cSal" step="0.01" inputmode="decimal" placeholder="0.00" /></div></div><button class="cta" style="margin:0" data-act="savep">Save cutoff</button></div>` +
+          (keys.length
+            ? `<h2 style="margin:18px 4px 10px">Your cutoffs</h2>` +
+              keys
+                .map((k) => {
+                  const t = totals(k);
+                  return `<div class="card pcard ${k === active ? "act" : ""}" data-act="openp" data-k="${k}"><div class="h"><b>${dlabel(k) === "Today" ? k : k}</b>${k === active ? '<span class="badge">Active</span>' : ""}<button class="ghost" style="padding:6px 12px;font-size:12px" data-act="editp" data-k="${k}">Edit</button></div><div class="stats"><div><small>Income</small><b>${fmt(t.income)}</b></div><div><small>Borrowed</small><b>${fmt(t.borrowed)}</b></div><div><small>Outgoing</small><b>${fmt(t.expenses)}</b></div><div><small>Remaining</small><b class="${t.remaining < 0 ? "neg" : ""}">${fmt(t.remaining)}</b></div></div></div>`;
+                })
+                .join("")
+            : `<div class="card empty"><b>No cutoffs yet</b></div>`);
+      }
 
-function renderMore(){
-  $("#v-more").innerHTML=`<div class="card"><h2>Categories</h2><div class="chips">${state.categories.map(c=>`<button class="chip" data-act="editc" data-c="${esc(c)}">${esc(c)} ✎</button>`).join("")}</div><div class="two" style="grid-template-columns:1fr auto"><input type="text" id="newCat" placeholder="New category" /><button data-act="addc">Add</button></div></div>
-  <div class="card"><h2>Payment methods</h2><div class="chips">${state.paymentMethods.map(m=>`<button class="chip" data-act="editpm" data-m="${esc(m)}">${esc(m)} ✎</button>`).join("")}</div><div class="two" style="grid-template-columns:1fr auto"><input type="text" id="newMethod" placeholder="e.g. Maya, Visa" /><button data-act="addpm">Add method</button></div></div>
-  <div class="card"><h2>Appearance</h2><div class="field"><label for="themeSelect">Theme</label><select id="themeSelect">${[["system","System"],["light","Light"],["dark","Dark"],["ocean","Ocean"],["forest","Forest"],["lavender","Lavender"]].map(([value,label])=>`<option value="${value}" ${state.theme===value?"selected":""}>${label}</option>`).join("")}</select></div></div>
-  <div class="card"><h2>Loan reminders</h2><div class="field"><label for="loanReminderDays">Show on Home before due</label><select id="loanReminderDays">${[[0,"Off"],[1,"1 day"],[3,"3 days"],[7,"7 days"],[14,"14 days"],[30,"30 days"]].map(([days,label])=>`<option value="${days}" ${state.loanReminderDays===days?"selected":""}>${label}</option>`).join("")}</select></div></div>
-  <div class="card"><h2>Savings carried over</h2><input type="number" id="prev" step="0.01" inputmode="decimal" value="${state.previousSavings||0}" /><p class="helper" style="margin:12px 0 0">Total saved so far: <b id="savedTot" style="color:var(--ink)">${fmt(saved())}</b></p></div>
-  <div class="card"><h2>Backup &amp; restore</h2><div class="row"><button data-act="backup">Save backup</button><button class="ghost" data-act="restore">Load backup</button></div><input type="file" id="fileIn" accept=".txt" hidden /></div>`}
+      function renderMore() {
+        $("#v-more").innerHTML =
+          `<div class="card"><h2>Categories</h2><div class="chips">${state.categories.map((c) => `<button class="chip" data-act="editc" data-c="${esc(c)}">${esc(c)} ✎</button>`).join("")}</div><div class="two" style="grid-template-columns:1fr auto"><input type="text" id="newCat" placeholder="New category" /><button data-act="addc">Add</button></div></div>
+  <div class="card"><h2>Payment methods</h2><div class="chips">${state.paymentMethods.map((m) => `<button class="chip" data-act="editpm" data-m="${esc(m)}">${esc(m)} ✎</button>`).join("")}</div><div class="two" style="grid-template-columns:1fr auto"><input type="text" id="newMethod" placeholder="e.g. Maya, Visa" /><button data-act="addpm">Add method</button></div></div>
+  <div class="card"><h2>Appearance</h2><div class="field"><label for="themeSelect">Theme</label><select id="themeSelect">${[
+    ["system", "System"],
+    ["light", "Light"],
+    ["dark", "Dark"],
+    ["ocean", "Ocean"],
+    ["forest", "Forest"],
+    ["lavender", "Lavender"],
+  ]
+    .map(
+      ([value, label]) =>
+        `<option value="${value}" ${state.theme === value ? "selected" : ""}>${label}</option>`,
+    )
+    .join("")}</select></div></div>
+  <div class="card"><h2>Loan reminders</h2><div class="field"><label for="loanReminderDays">Show on Home before due</label><select id="loanReminderDays">${[
+    [0, "Off"],
+    [1, "1 day"],
+    [3, "3 days"],
+    [7, "7 days"],
+    [14, "14 days"],
+    [30, "30 days"],
+  ]
+    .map(
+      ([days, label]) =>
+        `<option value="${days}" ${state.loanReminderDays === days ? "selected" : ""}>${label}</option>`,
+    )
+    .join("")}</select></div></div>
+  <div class="card"><h2>Savings carried over</h2><input type="number" id="prev" step="0.01" inputmode="decimal" value="${state.previousSavings || 0}" /><p class="helper" style="margin:12px 0 0">Total saved so far: <b id="savedTot" style="color:var(--ink)">${fmt(saved())}</b></p></div>
+  <div class="card"><h2>Backup &amp; restore</h2><div class="row"><button data-act="backup">Save backup</button><button class="ghost" data-act="restore">Load backup</button></div><input type="file" id="fileIn" accept=".txt" hidden /></div>`;
+      }
 
-function render(){
-  const names={home:"Home",add:"Add",history:"History",loans:"Loans",cutoffs:"Cutoffs",more:"More"};
-  $("#title").textContent=names[view];$("#pillTxt").textContent=active?active:"No cutoff";
-  document.querySelectorAll(".view").forEach(v=>v.classList.toggle("on",v.id==="v-"+view));
-  ({home:renderHome,add:renderAdd,history:renderHistory,loans:renderLoans,cutoffs:renderCutoffs,more:renderMore})[view]();
-  renderTabs();updateBrowserThemeColor();autosave();
-}
-function updateBrowserThemeColor(){
-  const color=getComputedStyle(document.documentElement).getPropertyValue("--bg").trim();
-  document.querySelector('meta[name="theme-color"]').content=color;
-  return color;
-}
-function go(v){view=v;render();scrollTo(0,0)}
+      function render() {
+        const names = {
+          home: "Home",
+          add: "Add",
+          history: "History",
+          loans: "Loans",
+          cutoffs: "Cutoffs",
+          more: "More",
+        };
+        $("#title").textContent = names[view];
+        $("#pillTxt").textContent = active ? active : "No cutoff";
+        document
+          .querySelectorAll(".view")
+          .forEach((v) => v.classList.toggle("on", v.id === "v-" + view));
+        ({
+          home: renderHome,
+          add: renderAdd,
+          history: renderHistory,
+          loans: renderLoans,
+          cutoffs: renderCutoffs,
+          more: renderMore,
+        })[view]();
+        renderTabs();
+        updateBrowserThemeColor();
+        autosave();
+      }
+      function updateBrowserThemeColor() {
+        const color = getComputedStyle(document.documentElement)
+          .getPropertyValue("--bg")
+          .trim();
+        document.querySelector('meta[name="theme-color"]').content = color;
+        return color;
+      }
+      function go(v) {
+        view = v;
+        render();
+        scrollTo(0, 0);
+      }
 
-/* ---------- sheet ---------- */
-function openSheet(title,html,onSave,onDel){
-  const s=$("#sheet");
-  s.innerHTML=`<div class="grab"></div><h3>${title}</h3>${html}<div class="sb">${onDel?'<button class="ghost bad" id="sDel">Delete</button>':""}<button class="ghost" id="sCancel">Cancel</button><button id="sSave">Save</button></div>`;
-  $("#scrim").classList.add("on");s.classList.add("on");
-  $("#sCancel").onclick=closeSheet;$("#sSave").onclick=()=>{if(onSave()!==false)closeSheet()};
-  if(onDel)$("#sDel").onclick=()=>{if(onDel()!==false)closeSheet()};
-}
-function confirmSheet(title,message,onConfirm){
-  const s=$("#sheet");
-  s.innerHTML=`<div class="grab"></div><h3>${title}</h3><p class="helper">${message}</p><div class="sb"><button class="ghost" id="sCancel">Cancel</button><button class="ghost bad" id="sConfirm">Delete</button></div>`;
-  $("#scrim").classList.add("on");s.classList.add("on");
-  $("#sCancel").onclick=closeSheet;$("#sConfirm").onclick=onConfirm;
-}
-function closeSheet(){$("#scrim").classList.remove("on");$("#sheet").classList.remove("on")}
-$("#scrim").onclick=closeSheet;
+      /* ---------- sheet ---------- */
+      function openSheet(title, html, onSave, onDel) {
+        const s = $("#sheet");
+        s.innerHTML = `<div class="grab"></div><h3>${title}</h3>${html}<div class="sb">${onDel ? '<button class="ghost bad" id="sDel">Delete</button>' : ""}<button class="ghost" id="sCancel">Cancel</button><button id="sSave">Save</button></div>`;
+        $("#scrim").classList.add("on");
+        s.classList.add("on");
+        $("#sCancel").onclick = closeSheet;
+        $("#sSave").onclick = () => {
+          if (onSave() !== false) closeSheet();
+        };
+        if (onDel)
+          $("#sDel").onclick = () => {
+            if (onDel() !== false) closeSheet();
+          };
+      }
+      function confirmSheet(title, message, onConfirm) {
+        const s = $("#sheet");
+        s.innerHTML = `<div class="grab"></div><h3>${title}</h3><p class="helper">${message}</p><div class="sb"><button class="ghost" id="sCancel">Cancel</button><button class="ghost bad" id="sConfirm">Delete</button></div>`;
+        $("#scrim").classList.add("on");
+        s.classList.add("on");
+        $("#sCancel").onclick = closeSheet;
+        $("#sConfirm").onclick = onConfirm;
+      }
+      function closeSheet() {
+        $("#scrim").classList.remove("on");
+        $("#sheet").classList.remove("on");
+      }
+      $("#scrim").onclick = closeSheet;
 
-function editEntry(type,i){
-  const p=P(),inc=type==="i",arr=inc?p.income:p.expenses,it=arr[i];if(!it)return;
-  const loan=it.loanId&&state.loans.find(x=>x.id===it.loanId);
-  const loanGroup=loan&&loanGroups().find(x=>x.key===loanSourceKey(loan));
-  const methods=state.paymentMethods.concat(it.method&&!state.paymentMethods.includes(it.method)?[it.method]:[]);
-  openSheet(inc?"Edit income":"Edit expense",
-   `<div class="two"><div class="field"><label>Date</label><input type="date" id="fDate" value="${esc(it.date||active)}"></div><div class="field"><label>Amount</label><input type="number" id="fAmt" step="0.01" inputmode="decimal" value="${it.amt}"></div></div>`+
-   (inc?"":`<div class="field"><label>Category</label><select id="fCat">${state.categories.concat(state.categories.includes(it.cat)?[]:[it.cat]).map(c=>`<option ${c===it.cat?"selected":""} value="${esc(c)}">${esc(c)}</option>`).join("")}</select></div>`)+
-   `<div class="field"><label>Payment method (optional)</label><select id="fMethod"><option value="">Not specified</option>${methods.map(m=>`<option value="${esc(m)}" ${m===it.method?"selected":""}>${esc(m)}</option>`).join("")}</select></div>`+
-   `<div class="field"><label>Note</label><input type="text" id="fDesc" value="${esc(it.desc||"")}"></div>`,
-   ()=>{const amt=parseFloat($("#fAmt").value),date=$("#fDate").value;if(!Number.isFinite(amt)||amt<=0||!date){toast("Check date and amount");return false}
-     if(loanGroup&&amt>loanTotal(loanGroup)-loanPaid(loanGroup)+it.amt+0.000001){toast("Payment exceeds the remaining loan balance");return false}
-     Object.assign(it,{date,amt,desc:$("#fDesc").value.trim(),method:$("#fMethod").value});if(!inc)it.cat=$("#fCat").value;render();toast("Updated")},
-   ()=>{if(!confirm("Delete this entry?"))return false;arr.splice(i,1);render();toast("Deleted")});
-}
-function editPeriod(k){
-  const p=state.periods[k];if(!p)return;
-  openSheet("Edit cutoff",`<div class="two"><div class="field"><label>Cutoff date</label><input type="date" id="fDate" value="${k}"></div><div class="field"><label>Salary</label><input type="number" id="fSal" step="0.01" inputmode="decimal" value="${p.salary||""}"></div></div>`,
-   ()=>{const nd=$("#fDate").value;if(!nd)return false;if(nd!==k&&state.periods[nd]){toast("That cutoff already exists");return false}
-     p.salary=parseFloat($("#fSal").value)||0;if(nd!==k){state.periods[nd]=p;delete state.periods[k];if(active===k)active=nd}render();toast("Cutoff updated")},
-   ()=>{confirmSheet("Delete cutoff?",`Delete cutoff ${esc(k)} and all its data?`,()=>{delete state.periods[k];if(active===k){const r=Object.keys(state.periods).sort();active=r.length?r[r.length-1]:null}closeSheet();render();toast("Cutoff deleted")});return false});
-}
-function editCat(old){
-  openSheet("Edit category",`<div class="field"><label>Name</label><input type="text" id="fName" value="${esc(old)}"></div>`,
-   ()=>{const n=$("#fName").value.trim();if(!n||n===old)return;if(state.categories.includes(n)){toast("Already exists");return false}
-     state.categories=state.categories.map(c=>c===old?n:c);Object.values(state.periods).forEach(p=>p.expenses.forEach(e=>{if(e.cat===old)e.cat=n}));if(addCat===old)addCat=n;render();toast("Category updated")},
-   ()=>{state.categories=state.categories.filter(c=>c!==old);render();toast("Category deleted")});
-}
-function editPaymentMethod(old){
-  openSheet("Edit payment method",`<div class="field"><label>Name</label><input type="text" id="fName" value="${esc(old)}"></div>`,
-   ()=>{const n=$("#fName").value.trim();if(!n||n===old)return;if(state.paymentMethods.includes(n)){toast("Already exists");return false}
-     state.paymentMethods=state.paymentMethods.map(m=>m===old?n:m);Object.values(state.periods).forEach(p=>p.expenses.forEach(e=>{if(e.method===old)e.method=n}));render();toast("Payment method updated")},
-   ()=>{state.paymentMethods=state.paymentMethods.filter(m=>m!==old);render();toast("Payment method deleted")});
-}
+      function editEntry(type, i) {
+        const p = P(),
+          inc = type === "i" || type === "b",
+          arr = inc ? p.income : p.expenses,
+          it = arr[i];
+        if (!it) return;
+        const loan = it.loanId && state.loans.find((x) => x.id === it.loanId);
+        const loanGroup =
+          loan && loanGroups().find((x) => x.key === loanSourceKey(loan));
+        const creditAccounts =
+          (!inc || it.borrowedFunds) && !it.loanPayment
+            ? loanGroups().filter((group) => group.creditAccount)
+            : [];
+        const methods = state.paymentMethods.concat(
+          it.method && !state.paymentMethods.includes(it.method)
+            ? [it.method]
+            : [],
+        );
+        openSheet(
+          it.borrowedFunds
+            ? "Edit borrowed funds"
+            : inc
+              ? "Edit income"
+              : "Edit expense",
+          `<div class="two"><div class="field"><label>Date</label><input type="date" id="fDate" value="${esc(it.date || active)}"></div><div class="field"><label>Amount</label><input type="number" id="fAmt" step="0.01" inputmode="decimal" value="${it.amt}"></div></div>` +
+            (inc
+              ? ""
+              : `<div class="field"><label>Category</label><select id="fCat">${state.categories
+                  .concat(state.categories.includes(it.cat) ? [] : [it.cat])
+                  .map(
+                    (c) =>
+                      `<option ${c === it.cat ? "selected" : ""} value="${esc(c)}">${esc(c)}</option>`,
+                  )
+                  .join("")}</select></div>`) +
+            (creditAccounts.length
+              ? `<div class="field"><label for="fCreditAccount">${it.borrowedFunds ? "Borrowed from" : "Credit / pay-later account"} (optional)</label><select id="fCreditAccount"><option value="">${it.borrowedFunds ? "Not tracked as borrowed funds" : "Not tracked as credit"}</option>${creditAccounts.map((group) => `<option value="${esc(group.id)}" ${(it.creditCharge || it.borrowedFunds) && group.id === it.loanId ? "selected" : ""}>${esc(group.party)}</option>`).join("")}</select></div>`
+              : "") +
+            `<div class="field"><label>${inc ? "Received via / saved to" : "Payment method"} (optional)</label><select id="fMethod"><option value="">Not specified</option>${methods.map((m) => `<option value="${esc(m)}" ${m === it.method ? "selected" : ""}>${esc(m)}</option>`).join("")}</select></div>` +
+            `<div class="field"><label>Note</label><input type="text" id="fDesc" value="${esc(it.desc || "")}"></div>`,
+          () => {
+            const amt = parseFloat($("#fAmt").value),
+              date = $("#fDate").value;
+            if (!Number.isFinite(amt) || amt <= 0 || !date) {
+              toast("Check date and amount");
+              return false;
+            }
+            if (
+              loanGroup &&
+              it.loanId &&
+              !it.creditCharge &&
+              !it.borrowedFunds &&
+              amt >
+                loanTotal(loanGroup) - loanPaid(loanGroup) + it.amt + 0.000001
+            ) {
+              toast("Payment exceeds the remaining loan balance");
+              return false;
+            }
+            const creditAccountId =
+                !inc || it.borrowedFunds
+                  ? $("#fCreditAccount")?.value || ""
+                  : "",
+              creditAccount =
+                creditAccountId &&
+                loanGroups().find((group) => group.id === creditAccountId);
+            if (creditAccount) {
+              const oldCharge =
+                (it.creditCharge || it.borrowedFunds) &&
+                it.loanId === creditAccountId
+                  ? it.amt
+                  : 0;
+              if (
+                creditAccount.creditLimit &&
+                loanTotal(creditAccount) -
+                  loanPaid(creditAccount) -
+                  oldCharge +
+                  amt >
+                  creditAccount.creditLimit + 0.000001
+              ) {
+                toast("This amount would exceed the credit limit");
+                return false;
+              }
+            }
+            Object.assign(it, {
+              date,
+              amt,
+              desc: $("#fDesc").value.trim(),
+              method: $("#fMethod").value,
+            });
+            if (inc && it.borrowedFunds) {
+              if (creditAccount) {
+                it.loanId = creditAccount.id;
+              } else {
+                delete it.loanId;
+                delete it.borrowedFunds;
+              }
+            } else if (!inc) {
+              it.cat = $("#fCat").value;
+              if (creditAccount) {
+                it.loanId = creditAccount.id;
+                it.creditCharge = true;
+                delete it.loanPayment;
+              } else if (it.creditCharge) {
+                delete it.loanId;
+                delete it.creditCharge;
+              }
+            }
+            render();
+            toast("Updated");
+          },
+          () => {
+            confirmSheet(
+              "Delete entry?",
+              `Delete this ${it.borrowedFunds ? "borrowed funds" : inc ? "income" : "expense"} entry?`,
+              () => {
+                arr.splice(i, 1);
+                closeSheet();
+                render();
+                toast("Deleted");
+              },
+            );
+            return false;
+          },
+        );
+      }
+      function editPeriod(k) {
+        const p = state.periods[k];
+        if (!p) return;
+        openSheet(
+          "Edit cutoff",
+          `<div class="two"><div class="field"><label>Cutoff date</label><input type="date" id="fDate" value="${k}"></div><div class="field"><label>Salary</label><input type="number" id="fSal" step="0.01" inputmode="decimal" value="${p.salary || ""}"></div></div>`,
+          () => {
+            const nd = $("#fDate").value;
+            if (!nd) return false;
+            if (nd !== k && state.periods[nd]) {
+              toast("That cutoff already exists");
+              return false;
+            }
+            p.salary = parseFloat($("#fSal").value) || 0;
+            if (nd !== k) {
+              state.periods[nd] = p;
+              delete state.periods[k];
+              if (active === k) active = nd;
+            }
+            render();
+            toast("Cutoff updated");
+          },
+          () => {
+            confirmSheet(
+              "Delete cutoff?",
+              `Delete cutoff ${esc(k)} and all its data?`,
+              () => {
+                delete state.periods[k];
+                if (active === k) {
+                  const r = Object.keys(state.periods).sort();
+                  active = r.length ? r[r.length - 1] : null;
+                }
+                closeSheet();
+                render();
+                toast("Cutoff deleted");
+              },
+            );
+            return false;
+          },
+        );
+      }
+      function editCat(old) {
+        openSheet(
+          "Edit category",
+          `<div class="field"><label>Name</label><input type="text" id="fName" value="${esc(old)}"></div>`,
+          () => {
+            const n = $("#fName").value.trim();
+            if (!n || n === old) return;
+            if (state.categories.includes(n)) {
+              toast("Already exists");
+              return false;
+            }
+            state.categories = state.categories.map((c) => (c === old ? n : c));
+            Object.values(state.periods).forEach((p) =>
+              p.expenses.forEach((e) => {
+                if (e.cat === old) e.cat = n;
+              }),
+            );
+            if (addCat === old) addCat = n;
+            render();
+            toast("Category updated");
+          },
+          () => {
+            state.categories = state.categories.filter((c) => c !== old);
+            render();
+            toast("Category deleted");
+          },
+        );
+      }
+      function editPaymentMethod(old) {
+        openSheet(
+          "Edit payment method",
+          `<div class="field"><label>Name</label><input type="text" id="fName" value="${esc(old)}"></div>`,
+          () => {
+            const n = $("#fName").value.trim();
+            if (!n || n === old) return;
+            if (state.paymentMethods.includes(n)) {
+              toast("Already exists");
+              return false;
+            }
+            state.paymentMethods = state.paymentMethods.map((m) =>
+              m === old ? n : m,
+            );
+            Object.values(state.periods).forEach((p) =>
+              [...p.expenses, ...p.income].forEach((entry) => {
+                if (entry.method === old) entry.method = n;
+              }),
+            );
+            state.loans.forEach((loan) => {
+              if (loan.method === old) loan.method = n;
+              loan.credits?.forEach((credit) => {
+                if (credit.method === old) credit.method = n;
+              });
+            });
+            render();
+            toast("Payment method updated");
+          },
+          () => {
+            state.paymentMethods = state.paymentMethods.filter(
+              (m) => m !== old,
+            );
+            render();
+            toast("Payment method deleted");
+          },
+        );
+      }
 
-/* ---------- actions ---------- */
-function addEntry(){
-  const p=P();if(!p)return;
-  const amt=parseFloat($("#aAmt").value);if(isNaN(amt)||amt<=0){toast("Enter an amount");return}
-  const date=$("#aDate").value||today(),desc=$("#aDesc").value.trim(),createdAt=new Date().toISOString();addDate=date;
-  if(mode==="expense"){const method=$("#aMethod");p.expenses.push({cat:addCat,desc:desc||addCat,date,amt,createdAt,method:method?method.value:""})}else p.income.push({desc:desc||"Income",date,amt,createdAt});
-  render();toast(mode==="expense"?"Expense added":"Income added");$("#aAmt").focus();
-}
-function savePeriod(){
-  const d=$("#cDate").value;if(!d){toast("Pick a cutoff date");return}
-  const sal=parseFloat($("#cSal").value)||0;
-  if(!state.periods[d])state.periods[d]={salary:0,income:[],expenses:[]};
-  if(sal)state.periods[d].salary=sal;active=d;toast("Cutoff saved");go("home");
-}
-function serialize(){return JSON.stringify({...state,activePeriodKey:active},null,2)}
-function backup(){const u=URL.createObjectURL(new Blob([serialize()],{type:"text/plain"})),a=document.createElement("a");a.href=u;a.download="budget-data.txt";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(u);toast("Backup download started")}
-function loadFile(e){
-  const f=e.target.files[0];if(!f)return;const r=new FileReader();
-  r.onload=ev=>{try{const p=JSON.parse(ev.target.result);if(!p.categories||!p.periods)throw 0;applyLoaded(p);render();toast("Backup loaded")}catch(x){alert("Could not read that file — is it a budget-data.txt saved by this app?")}};
-  r.readAsText(f);e.target.value="";
-}
-const ACT={
-  tab:d=>go(d.v),
-  mode:d=>{mode=d.m;renderAdd()},
-  loanview:d=>{loansView=d.view;renderLoans()},
-  selectloan:d=>{paymentLoanId=d.id;renderLoans()},
-  cat:d=>{addCat=d.c;document.querySelectorAll("#v-add .chip").forEach(b=>b.classList.toggle("on",b.dataset.c===addCat))},
-  add:addEntry,
-  filter:d=>{filter=d.f;renderHistory()},
-  edit:d=>editEntry(d.type,+d.i),
-  addloan:addLoan,
-  addcredit:d=>addLoanCredit(d.id),
-  editcredit:d=>editLoanCredit(d.id,+d.index),
-  deletecredit:d=>deleteLoanCredit(d.id,+d.index),
-  setduedate:d=>setLoanDueDate(d.id),
-  recordpayment:recordLoanPayment,
-  deleteloan:d=>deleteLoan(d.id),
-  savep:savePeriod,
-  openp:d=>{active=d.k;go("home")},
-  editp:d=>editPeriod(d.k),
-  addc:()=>{const n=$("#newCat").value.trim();if(!n)return;if(!state.categories.includes(n))state.categories.push(n);render();toast("Category added")},
-  editc:d=>editCat(d.c),
-  addpm:()=>{const n=$("#newMethod").value.trim();if(!n)return;if(state.paymentMethods.includes(n)){toast("Already exists");return}state.paymentMethods.push(n);render();toast("Payment method added")},
-  editpm:d=>editPaymentMethod(d.m),
-  backup,restore:()=>$("#fileIn").click()
-};
-document.addEventListener("click",e=>{
-  const t=e.target.closest("[data-act]");if(!t)return;
-  if(t.classList.contains("pcard")&&e.target.closest("button[data-act=editp]"))return;
-  e.stopPropagation();ACT[t.dataset.act]&&ACT[t.dataset.act](t.dataset);
-});
-const updateHeader=()=>$(".top").classList.toggle("scrolled",window.scrollY>4);
-window.addEventListener("scroll",updateHeader,{passive:true});
-updateHeader();
-document.addEventListener("change",e=>{if(e.target.id==="fileIn")loadFile(e);if(e.target.id==="loanReminderDays"){state.loanReminderDays=Number(e.target.value);autosave();if(view==="home")renderHome()}if(e.target.id==="themeSelect"){setTheme(e.target.value);updateBrowserThemeColor();autosave()}});
-document.addEventListener("input",e=>{if(e.target.id==="prev"){state.previousSavings=parseFloat(e.target.value)||0;$("#savedTot").textContent=fmt(saved());autosave()}if(e.target.id==="paymentLoanSearch")renderPaymentOptions();if(e.target.id==="loanSourceSearch")$("#loanSourceList").innerHTML=loanCards()});
+      /* ---------- actions ---------- */
+      function addEntry() {
+        const p = P();
+        if (!p) return;
+        const amt = parseFloat($("#aAmt").value);
+        if (isNaN(amt) || amt <= 0) {
+          toast("Enter an amount");
+          return;
+        }
+        const date = $("#aDate").value || today(),
+          desc = $("#aDesc").value.trim(),
+          createdAt = new Date().toISOString();
+        addDate = date;
+        const method = $("#aMethod")?.value || "";
+        const accountId =
+            mode !== "income" ? $("#aCreditAccount")?.value || "" : "",
+          account =
+            accountId && loanGroups().find((loan) => loan.id === accountId);
+        if (mode === "borrowed" && !account) {
+          toast("Select a tracked credit account");
+          return;
+        }
+        if (
+          account &&
+          account.creditLimit &&
+          loanTotal(account) - loanPaid(account) + amt >
+            account.creditLimit + 0.000001
+        ) {
+          toast("This amount would exceed the credit limit");
+          return;
+        }
+        if (mode === "expense")
+          p.expenses.push({
+            cat: addCat,
+            desc: desc || addCat,
+            date,
+            amt,
+            createdAt,
+            method,
+            ...(account ? { loanId: account.id, creditCharge: true } : {}),
+          });
+        else if (mode === "borrowed")
+          p.income.push({
+            desc: desc || `Cash advance · ${account.party}`,
+            date,
+            amt,
+            createdAt,
+            method,
+            loanId: account.id,
+            borrowedFunds: true,
+          });
+        else
+          p.income.push({
+            desc: desc || "Income",
+            date,
+            amt,
+            createdAt,
+            method,
+          });
+        render();
+        toast(
+          mode === "expense"
+            ? "Expense added"
+            : mode === "borrowed"
+              ? "Borrowed funds added"
+              : "Income added",
+        );
+        $("#aAmt").focus();
+      }
+      function savePeriod() {
+        const d = $("#cDate").value;
+        if (!d) {
+          toast("Pick a cutoff date");
+          return;
+        }
+        const sal = parseFloat($("#cSal").value) || 0;
+        if (!state.periods[d])
+          state.periods[d] = { salary: 0, income: [], expenses: [] };
+        if (sal) state.periods[d].salary = sal;
+        active = d;
+        toast("Cutoff saved");
+        go("home");
+      }
+      function serialize() {
+        return JSON.stringify({ ...state, activePeriodKey: active }, null, 2);
+      }
+      function backup() {
+        const u = URL.createObjectURL(
+            new Blob([serialize()], { type: "text/plain" }),
+          ),
+          a = document.createElement("a");
+        a.href = u;
+        a.download = "budget-data.txt";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(u);
+        toast("Backup download started");
+      }
+      function loadFile(e) {
+        const f = e.target.files[0];
+        if (!f) return;
+        const r = new FileReader();
+        r.onload = (ev) => {
+          try {
+            const p = JSON.parse(ev.target.result);
+            if (!p.categories || !p.periods) throw 0;
+            applyLoaded(p);
+            render();
+            toast("Backup loaded");
+          } catch (x) {
+            alert(
+              "Could not read that file — is it a budget-data.txt saved by this app?",
+            );
+          }
+        };
+        r.readAsText(f);
+        e.target.value = "";
+      }
+      const ACT = {
+        tab: (d) => go(d.v),
+        mode: (d) => {
+          mode = d.m;
+          renderAdd();
+        },
+        loanview: (d) => {
+          loansView = d.view;
+          renderLoans();
+        },
+        selectloan: (d) => {
+          paymentLoanId = d.id;
+          renderLoans();
+        },
+        cat: (d) => {
+          addCat = d.c;
+          document
+            .querySelectorAll("#v-add .chip")
+            .forEach((b) => b.classList.toggle("on", b.dataset.c === addCat));
+        },
+        add: addEntry,
+        filter: (d) => {
+          filter = d.f;
+          renderHistory();
+        },
+        edit: (d) => editEntry(d.type, +d.i),
+        addloan: addLoan,
+        editloansource: (d) => editLoanSource(d.id),
+        addcredit: (d) => addLoanCredit(d.id),
+        editcredit: (d) => editLoanCredit(d.id, +d.index),
+        editcharge: (d) => editCreditCharge(d.type, d.period, +d.index),
+        deletecharge: (d) => deleteCreditCharge(d.type, d.period, +d.index),
+        deletecredit: (d) => deleteLoanCredit(d.id, +d.index),
+        setduedate: (d) => setLoanDueDate(d.id),
+        recordpayment: recordLoanPayment,
+        deleteloan: (d) => deleteLoan(d.id),
+        savep: savePeriod,
+        openp: (d) => {
+          active = d.k;
+          go("home");
+        },
+        editp: (d) => editPeriod(d.k),
+        addc: () => {
+          const n = $("#newCat").value.trim();
+          if (!n) return;
+          if (!state.categories.includes(n)) state.categories.push(n);
+          render();
+          toast("Category added");
+        },
+        editc: (d) => editCat(d.c),
+        addpm: () => {
+          const n = $("#newMethod").value.trim();
+          if (!n) return;
+          if (state.paymentMethods.includes(n)) {
+            toast("Already exists");
+            return;
+          }
+          state.paymentMethods.push(n);
+          render();
+          toast("Payment method added");
+        },
+        editpm: (d) => editPaymentMethod(d.m),
+        backup,
+        restore: () => $("#fileIn").click(),
+      };
+      document.addEventListener("click", (e) => {
+        const t = e.target.closest("[data-act]");
+        if (!t) return;
+        if (
+          t.classList.contains("pcard") &&
+          e.target.closest("button[data-act=editp]")
+        )
+          return;
+        e.stopPropagation();
+        ACT[t.dataset.act] && ACT[t.dataset.act](t.dataset);
+      });
+      const updateHeader = () =>
+        $(".top").classList.toggle("scrolled", window.scrollY > 4);
+      window.addEventListener("scroll", updateHeader, { passive: true });
+      updateHeader();
+      document.addEventListener("change", (e) => {
+        if (e.target.id === "fileIn") loadFile(e);
+        if (e.target.id === "loanReminderDays") {
+          state.loanReminderDays = Number(e.target.value);
+          autosave();
+          if (view === "home") renderHome();
+        }
+        if (e.target.id === "themeSelect") {
+          setTheme(e.target.value);
+          updateBrowserThemeColor();
+          autosave();
+        }
+      });
+      document.addEventListener("input", (e) => {
+        if (e.target.id === "prev") {
+          state.previousSavings = parseFloat(e.target.value) || 0;
+          $("#savedTot").textContent = fmt(saved());
+          autosave();
+        }
+        if (e.target.id === "paymentLoanSearch") renderPaymentOptions();
+        if (e.target.id === "loanSourceSearch")
+          $("#loanSourceList").innerHTML = loanCards();
+      });
 
-autoload();render();
-if(window.matchMedia){const colorScheme=window.matchMedia("(prefers-color-scheme: dark)");colorScheme.addEventListener?.("change",updateBrowserThemeColor)}
+      autoload();
+      render();
+      if (window.matchMedia) {
+        const colorScheme = window.matchMedia("(prefers-color-scheme: dark)");
+        colorScheme.addEventListener?.("change", updateBrowserThemeColor);
+      }
 
-/* ---------- PWA ---------- */
-(function(){try{
-  const icon=s=>{const c=document.createElement("canvas");c.width=c.height=s;const x=c.getContext("2d");x.fillStyle="#121212";x.fillRect(0,0,s,s);x.fillStyle="#c8f542";x.font="bold "+Math.round(s*.56)+"px sans-serif";x.textAlign="center";x.textBaseline="middle";x.fillText("₱",s/2,s/2+s*.03);return c.toDataURL("image/png")};
-  const i192=icon(192),i512=icon(512);$("#appleTouchIcon").href=i192;
-  const base=location.href.split("#")[0];
-  const appColor=updateBrowserThemeColor();
-  const m={name:"Daily Cost Tracker",short_name:"Daily Cost",start_url:base,scope:base,display:"standalone",background_color:appColor,theme_color:appColor,icons:[{src:i192,sizes:"192x192",type:"image/png"},{src:i512,sizes:"512x512",type:"image/png"},{src:i512,sizes:"512x512",type:"image/png",purpose:"maskable"}]};
-  $("#manifestLink").href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:"application/manifest+json"}));
-  if("serviceWorker" in navigator){
-    const sw=`self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>self.clients.claim());self.addEventListener('fetch',e=>{e.respondWith(fetch(e.request).then(r=>{const c=r.clone();caches.open('budget-tracker-v1').then(k=>k.put(e.request,c)).catch(()=>{});return r}).catch(()=>caches.match(e.request)))});`;
-    navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:"application/javascript"}))).catch(()=>{});
-  }
-}catch(e){}})();
-</script>
-</body>
+      /* ---------- PWA ---------- */
+      (function () {
+        try {
+          const icon = (s) => {
+            const c = document.createElement("canvas");
+            c.width = c.height = s;
+            const x = c.getContext("2d");
+            x.fillStyle = "#121212";
+            x.fillRect(0, 0, s, s);
+            x.fillStyle = "#c8f542";
+            x.font = "bold " + Math.round(s * 0.56) + "px sans-serif";
+            x.textAlign = "center";
+            x.textBaseline = "middle";
+            x.fillText("₱", s / 2, s / 2 + s * 0.03);
+            return c.toDataURL("image/png");
+          };
+          const i192 = icon(192),
+            i512 = icon(512);
+          $("#appleTouchIcon").href = i192;
+          const base = location.href.split("#")[0];
+          const appColor = updateBrowserThemeColor();
+          const m = {
+            name: "Daily Cost Tracker",
+            short_name: "Daily Cost",
+            start_url: base,
+            scope: base,
+            display: "standalone",
+            background_color: appColor,
+            theme_color: appColor,
+            icons: [
+              { src: i192, sizes: "192x192", type: "image/png" },
+              { src: i512, sizes: "512x512", type: "image/png" },
+              {
+                src: i512,
+                sizes: "512x512",
+                type: "image/png",
+                purpose: "maskable",
+              },
+            ],
+          };
+          $("#manifestLink").href = URL.createObjectURL(
+            new Blob([JSON.stringify(m)], {
+              type: "application/manifest+json",
+            }),
+          );
+          if ("serviceWorker" in navigator) {
+            const sw = `self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>self.clients.claim());self.addEventListener('fetch',e=>{e.respondWith(fetch(e.request).then(r=>{const c=r.clone();caches.open('budget-tracker-v1').then(k=>k.put(e.request,c)).catch(()=>{});return r}).catch(()=>caches.match(e.request)))});`;
+            navigator.serviceWorker
+              .register(
+                URL.createObjectURL(
+                  new Blob([sw], { type: "application/javascript" }),
+                ),
+              )
+              .catch(() => {});
+          }
+        } catch (e) {}
+      })();
+    </script>
+  </body>
 </html>
