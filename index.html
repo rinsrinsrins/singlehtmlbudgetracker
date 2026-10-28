@@ -200,7 +200,7 @@ function renderTabs(){$("#tabbar").innerHTML=TABS.map(([v,l])=>`<button class="$
 
 /* ---------- views ---------- */
 const emptyCard=(t,b,v)=>`<div class="card empty"><b>${t}</b><button data-act="tab" data-v="${v}">${b}</button></div>`;
-function itemRow(type,i,x){const inc=type==="i",time=x.createdAt?tlabel(x.createdAt):"",detail=`${inc?"Income":esc(x.cat)}${x.method?` · ${esc(x.method)}`:""}`;return`<div class="item" data-act="edit" data-type="${type}" data-i="${i}"><div class="ico ${inc?"inc":""}">${inc?"+":esc((x.cat||"?")[0].toUpperCase())}</div><div class="m"><b>${esc(x.desc||x.cat)}</b><small>${detail} · ${dlabel(x.date||active)}${time?` · ${esc(time)}`:""}</small></div><div class="amt ${inc?"in":""}">${inc?"+":"-"}${fmt(x.amt).replace("-","")}</div></div>`}
+function itemRow(type,i,x,showMethod=true){const inc=type==="i",time=x.createdAt?tlabel(x.createdAt):"",detail=`${inc?"Income":esc(x.cat)}${showMethod&&x.method?` · ${esc(x.method)}`:""}`;return`<div class="item" data-act="edit" data-type="${type}" data-i="${i}"><div class="ico ${inc?"inc":""}">${inc?"+":esc((x.cat||"?")[0].toUpperCase())}</div><div class="m"><b>${esc(x.desc||x.cat)}</b><small>${detail} · ${dlabel(x.date||active)}${time?` · ${esc(time)}`:""}</small></div><div class="amt ${inc?"in":""}">${inc?"+":"-"}${fmt(x.amt).replace("-","")}</div></div>`}
 
 function renderHome(){
   const el=$("#v-home"),p=P();
@@ -212,7 +212,7 @@ function renderHome(){
   const ents=Object.entries(byCat).sort((a,b)=>b[1]-a[1]),max=ents.length?ents[0][1]:1;
   el.innerHTML=`<div class="hero"><div class="ringwrap"><svg class="ring" viewBox="0 0 128 128"><circle cx="64" cy="64" r="54" stroke="rgba(255,255,255,.1)"/><circle cx="64" cy="64" r="54" stroke="${over?"#ff8a85":"#c8f542"}" stroke-dasharray="${pct*C} ${C}"/></svg><div class="ringc"><small>LEFT</small><b class="${over?"neg":"lime"}">${fmt(t.remaining)}</b></div></div>
   <div class="stats"><div><small>Income</small><b>${fmt(t.income)}</b></div><div><small>Spent</small><b>${fmt(t.expenses)}</b></div><div><small>Today</small><b>${fmt(sum(tx.map(x=>x[1])))}</b></div></div></div>
-  <div class="card"><h2>Today</h2>${tx.length?tx.slice().reverse().slice(0,5).map(([i,e])=>itemRow("e",i,e)).join(""):`<p class="helper" style="margin:0">Nothing spent today.</p>`}</div>
+  <div class="card"><h2>Today</h2>${tx.length?tx.slice().reverse().slice(0,5).map(([i,e])=>itemRow("e",i,e,false)).join(""):`<p class="helper" style="margin:0">Nothing spent today.</p>`}</div>
   <div class="card"><h2>Where it goes</h2>${ents.length?ents.map(([c,a])=>`<div class="bar"><span>${esc(c)}</span><div class="track"><div class="fill" style="width:${a/max*100}%"></div></div><b>${fmt(a)}</b></div>`).join(""):`<p class="helper" style="margin:0">No expenses yet.</p>`}</div>
   <div class="card" style="display:flex;justify-content:space-between;align-items:center"><span class="helper" style="margin:0">Total saved so far</span><b style="font-size:20px" class="${saved()<0?"neg":""}">${fmt(saved())}</b></div>
   ${loanAnalyticsCard()}`}
