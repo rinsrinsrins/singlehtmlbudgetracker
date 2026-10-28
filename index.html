@@ -78,6 +78,19 @@ h2{font-size:13px;margin:0 0 10px;color:var(--sub);font-weight:700;letter-spacin
 .loan-overview .stats div{background:var(--soft)}
 .loan-overview .stats small{opacity:1;color:var(--sub)}
 .loan-overview .stats b{font-size:17px}
+.home-loan-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
+.home-loan-stats div{min-width:0;background:var(--soft);border-radius:16px;padding:11px 12px}
+.home-loan-stats small{display:block;color:var(--sub);font-size:11px}
+.home-loan-stats b{font-size:15px;font-variant-numeric:tabular-nums}
+.loan-reminders{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.loan-reminder{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0}
+.loan-reminder+.loan-reminder{border-top:1px solid var(--line)}
+.loan-reminder strong{display:block;font-size:13px}
+.loan-reminder small{color:var(--sub)}
+.loan-reminder b{white-space:nowrap;font-size:13px}
+.home-loan-heading{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.home-loan-heading h2{margin:0}
+.home-loan-heading button{padding:7px 10px;font-size:12px}
 .loan-list-heading{display:flex;justify-content:space-between;align-items:center;margin:20px 4px 8px}
 .loan-list-heading h2{margin:0}
 .loan-list-heading small{color:var(--sub);font-size:12px}
@@ -96,6 +109,8 @@ h2{font-size:13px;margin:0 0 10px;color:var(--sub);font-weight:700;letter-spacin
 .credit-table th{color:var(--sub);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
 .credit-table th:last-child,.credit-table td:last-child{text-align:right;white-space:nowrap}
 .credit-table tr:last-child td{border-bottom:0}
+.credit-actions{display:flex;justify-content:flex-end;gap:6px}
+.credit-actions button{padding:6px 9px;font-size:11px}
 .loan-picker{max-height:230px;overflow:auto;border:1px solid var(--line);border-radius:14px;padding:4px;margin:0 0 12px}
 .loan-option{display:flex;width:100%;justify-content:space-between;align-items:center;gap:12px;padding:10px 12px;background:transparent;color:var(--ink);text-align:left;border-radius:10px}
 .loan-option+.loan-option{border-top:1px solid var(--line)}
@@ -161,7 +176,7 @@ h2{font-size:13px;margin:0 0 10px;color:var(--sub);font-weight:700;letter-spacin
 <div id="scrim"></div><div id="sheet" role="dialog" aria-modal="true"></div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <script>
-let state={categories:["Food","Transportation","Bills","Others"],paymentMethods:["Cash","Debit card","Credit card","Bank transfer","E-wallet","Other"],periods:{},loans:[],previousSavings:0};
+let state={categories:["Food","Transportation","Bills","Others"],paymentMethods:["Cash","Debit card","Credit card","Bank transfer","E-wallet","Other"],periods:{},loans:[],previousSavings:0,loanReminderDays:7};
 let active=null,view="home",mode="expense",filter="all",loansView="loans",paymentLoanId=null,addCat=null,addDate=null;
 const LS="budget-tracker-autosave",$=s=>document.querySelector(s);
 const sum=a=>a.reduce((s,x)=>s+x.amt,0);
@@ -175,7 +190,7 @@ function totals(k){const p=state.periods[k],income=p.salary+sum(p.income),expens
 function saved(){return Object.keys(state.periods).reduce((t,k)=>t+totals(k).remaining,state.previousSavings||0)}
 let tt;function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(tt);tt=setTimeout(()=>t.classList.remove("show"),2200)}
 function autosave(){try{localStorage.setItem(LS,JSON.stringify({state,activePeriodKey:active}))}catch(e){}}
-function applyLoaded(p){state={categories:p.categories,paymentMethods:Array.isArray(p.paymentMethods)?p.paymentMethods:["Cash","Debit card","Credit card","Bank transfer","E-wallet","Other"],periods:p.periods,loans:Array.isArray(p.loans)?p.loans:[],previousSavings:p.previousSavings||0};const ks=Object.keys(state.periods).sort();active=p.activePeriodKey&&state.periods[p.activePeriodKey]?p.activePeriodKey:ks.length?ks[ks.length-1]:null}
+function applyLoaded(p){state={categories:p.categories,paymentMethods:Array.isArray(p.paymentMethods)?p.paymentMethods:["Cash","Debit card","Credit card","Bank transfer","E-wallet","Other"],periods:p.periods,loans:Array.isArray(p.loans)?p.loans:[],previousSavings:p.previousSavings||0,loanReminderDays:Number.isInteger(p.loanReminderDays)&&p.loanReminderDays>=0&&p.loanReminderDays<=60?p.loanReminderDays:7};const ks=Object.keys(state.periods).sort();active=p.activePeriodKey&&state.periods[p.activePeriodKey]?p.activePeriodKey:ks.length?ks[ks.length-1]:null}
 function autoload(){try{const r=localStorage.getItem(LS);if(!r)return;const p=JSON.parse(r);if(p.state&&p.state.categories&&p.state.periods)applyLoaded({...p.state,activePeriodKey:p.activePeriodKey})}catch(e){}}
 
 /* ---------- icons / tabs ---------- */
@@ -184,12 +199,12 @@ const TABS=[["home","Home"],["history","History"],["add","Add"],["loans","Loans"
 function renderTabs(){$("#tabbar").innerHTML=TABS.map(([v,l])=>`<button class="${v==="add"?"plus ":""}${view===v?"on":""}" data-act="tab" data-v="${v}" aria-label="${l}"><svg viewBox="0 0 24 24">${IC[v]}</svg><span>${l}</span></button>`).join("")}
 
 /* ---------- views ---------- */
-const emptyCard=(t,s,b,v)=>`<div class="card empty"><b>${t}</b><p>${s}</p><button data-act="tab" data-v="${v}">${b}</button></div>`;
+const emptyCard=(t,b,v)=>`<div class="card empty"><b>${t}</b><button data-act="tab" data-v="${v}">${b}</button></div>`;
 function itemRow(type,i,x){const inc=type==="i",time=x.createdAt?tlabel(x.createdAt):"",detail=`${inc?"Income":esc(x.cat)}${x.method?` · ${esc(x.method)}`:""}`;return`<div class="item" data-act="edit" data-type="${type}" data-i="${i}"><div class="ico ${inc?"inc":""}">${inc?"+":esc((x.cat||"?")[0].toUpperCase())}</div><div class="m"><b>${esc(x.desc||x.cat)}</b><small>${detail} · ${dlabel(x.date||active)}${time?` · ${esc(time)}`:""}</small></div><div class="amt ${inc?"in":""}">${inc?"+":"-"}${fmt(x.amt).replace("-","")}</div></div>`}
 
 function renderHome(){
   const el=$("#v-home"),p=P();
-  if(!p){el.innerHTML=emptyCard("Welcome 👋","Create a cutoff to start tracking your spending.","Set up cutoff","cutoffs");return}
+  if(!p){el.innerHTML=emptyCard("Welcome 👋","Set up cutoff","cutoffs")+loanAnalyticsCard();return}
   const t=totals(active),td=today(),C=2*Math.PI*54;
   const pct=t.income>0?Math.min(t.expenses/t.income,1):t.expenses>0?1:0,over=t.remaining<0;
   const tx=p.expenses.map((e,i)=>[i,e]).filter(([i,e])=>(e.date||active)===td);
@@ -198,13 +213,25 @@ function renderHome(){
   el.innerHTML=`<div class="hero"><div class="ringwrap"><svg class="ring" viewBox="0 0 128 128"><circle cx="64" cy="64" r="54" stroke="rgba(255,255,255,.1)"/><circle cx="64" cy="64" r="54" stroke="${over?"#ff8a85":"#c8f542"}" stroke-dasharray="${pct*C} ${C}"/></svg><div class="ringc"><small>LEFT</small><b class="${over?"neg":"lime"}">${fmt(t.remaining)}</b></div></div>
   <div class="stats"><div><small>Income</small><b>${fmt(t.income)}</b></div><div><small>Spent</small><b>${fmt(t.expenses)}</b></div><div><small>Today</small><b>${fmt(sum(tx.map(x=>x[1])))}</b></div></div></div>
   <div class="card"><h2>Today</h2>${tx.length?tx.slice().reverse().slice(0,5).map(([i,e])=>itemRow("e",i,e)).join(""):`<p class="helper" style="margin:0">Nothing spent today.</p>`}</div>
-  <div class="card"><h2>Where it goes</h2>${ents.length?ents.map(([c,a])=>`<div class="bar"><span>${esc(c)}</span><div class="track"><div class="fill" style="width:${a/max*100}%"></div></div><b>${fmt(a)}</b></div>`).join(""):`<p class="helper" style="margin:0">Add an expense to see your breakdown.</p>`}</div>
-  <div class="card" style="display:flex;justify-content:space-between;align-items:center"><span class="helper" style="margin:0">Total saved so far</span><b style="font-size:20px" class="${saved()<0?"neg":""}">${fmt(saved())}</b></div>`}
+  <div class="card"><h2>Where it goes</h2>${ents.length?ents.map(([c,a])=>`<div class="bar"><span>${esc(c)}</span><div class="track"><div class="fill" style="width:${a/max*100}%"></div></div><b>${fmt(a)}</b></div>`).join(""):`<p class="helper" style="margin:0">No expenses yet.</p>`}</div>
+  <div class="card" style="display:flex;justify-content:space-between;align-items:center"><span class="helper" style="margin:0">Total saved so far</span><b style="font-size:20px" class="${saved()<0?"neg":""}">${fmt(saved())}</b></div>
+  ${loanAnalyticsCard()}`}
+
+function loanAnalyticsCard(){
+  const groups=loanGroups();
+  const owed=groups.filter(loan=>loan.direction==="borrowed").reduce((total,loan)=>total+Math.max(0,loanTotal(loan)-loanPaid(loan)),0);
+  const receivable=groups.filter(loan=>loan.direction==="lent").reduce((total,loan)=>total+Math.max(0,loanTotal(loan)-loanPaid(loan)),0);
+  const p=P();
+  const paid=p?sum(p.expenses.filter(entry=>entry.loanId)):0;
+  const received=p?sum(p.income.filter(entry=>entry.loanId)):0;
+  const reminders=state.loanReminderDays?groups.map(loan=>({loan,balance:Math.max(0,loanTotal(loan)-loanPaid(loan)),due:monthlyDueInfo(loan.dueDay)})).filter(item=>item.balance>0&&item.due&&item.due.days<=state.loanReminderDays).sort((a,b)=>a.due.date-b.due.date):[];
+  return`<div class="card"><div class="home-loan-heading"><h2>Loan snapshot</h2><button class="ghost" data-act="tab" data-v="loans">View loans</button></div><div class="home-loan-stats"><div><small>You owe</small><b>${fmt(owed)}</b></div><div><small>Owed to you</small><b>${fmt(receivable)}</b></div>${p?`<div><small>Repaid this cutoff</small><b>${fmt(paid)}</b></div><div><small>Received this cutoff</small><b>${fmt(received)}</b></div>`:""}</div>${reminders.length?`<div class="loan-reminders"><h2>Due within ${state.loanReminderDays} ${state.loanReminderDays===1?"day":"days"}</h2>${reminders.map(({loan,balance,due})=>`<div class="loan-reminder"><span><strong>${esc(loan.party)}</strong><small>${due.label}</small></span><b>${fmt(balance)}</b></div>`).join("")}</div>`:""}</div>`;
+}
 
 function renderAdd(){
   const el=$("#v-add");
   const modes=`<div class="seg"><button class="${mode==="expense"?"on":""}" data-act="mode" data-m="expense">Expense</button><button class="${mode==="income"?"on":""}" data-act="mode" data-m="income">Income</button></div>`;
-  if(!P()){el.innerHTML=modes+emptyCard("No cutoff selected","Choose or create a cutoff first.","Go to cutoffs","cutoffs");return}
+  if(!P()){el.innerHTML=modes+emptyCard("No cutoff selected","Go to cutoffs","cutoffs");return}
   if(!addCat||!state.categories.includes(addCat))addCat=state.categories[0];
   el.innerHTML=modes+`
   <div class="big"><span>₱</span><input type="number" id="aAmt" step="0.01" inputmode="decimal" placeholder="0.00" aria-label="Amount" /></div>
@@ -215,14 +242,14 @@ function renderAdd(){
 
 function renderHistory(){
   const el=$("#v-history"),p=P();
-  if(!p){el.innerHTML=emptyCard("No cutoff selected","Choose or create a cutoff first.","Go to cutoffs","cutoffs");return}
+  if(!p){el.innerHTML=emptyCard("No cutoff selected","Go to cutoffs","cutoffs");return}
   let L=[];
   if(filter!=="income")p.expenses.forEach((x,i)=>L.push({t:"e",i,x}));
   if(filter!=="expense")p.income.forEach((x,i)=>L.push({t:"i",i,x}));
   L.sort((a,b)=>(b.x.date||active).localeCompare(a.x.date||active)||(b.x.createdAt||"").localeCompare(a.x.createdAt||"")||b.i-a.i);
   const groups={};L.forEach(o=>(groups[o.x.date||active]=groups[o.x.date||active]||[]).push(o));
   const seg=[["all","All"],["expense","Expenses"],["income","Income"]].map(([f,l])=>`<button class="${filter===f?"on":""}" data-act="filter" data-f="${f}">${l}</button>`).join("");
-  el.innerHTML=`<div class="seg">${seg}</div>`+(L.length?Object.keys(groups).sort().reverse().map(d=>{const g=groups[d],spent=sum(g.filter(o=>o.t==="e").map(o=>o.x));return`<div class="day"><span>${dlabel(d)}</span><span>${spent?"-"+fmt(spent).replace("-",""):""}</span></div><div class="card" style="padding:4px 16px">${g.map(o=>itemRow(o.t,o.i,o.x)).join("")}</div>`}).join(""):`<div class="card empty"><b>Nothing here yet</b><p>Entries you add will show up here.</p></div>`)}
+  el.innerHTML=`<div class="seg">${seg}</div>`+(L.length?Object.keys(groups).sort().reverse().map(d=>{const g=groups[d],spent=sum(g.filter(o=>o.t==="e").map(o=>o.x));return`<div class="day"><span>${dlabel(d)}</span><span>${spent?"-"+fmt(spent).replace("-",""):""}</span></div><div class="card" style="padding:4px 16px">${g.map(o=>itemRow(o.t,o.i,o.x)).join("")}</div>`}).join(""):`<div class="card empty"><b>Nothing here yet</b></div>`)}
 
 function loanPaid(loan){
   const ids=new Set(loan.loans?loan.loans.map(item=>item.id):[loan.id]);
@@ -252,17 +279,40 @@ function loanTotal(loan){
 function loanCards(){
   const query=$("#loanSourceSearch")?.value.trim().toLocaleLowerCase()||"";
   const loans=loanGroups().filter(loan=>`${loan.party} ${loan.direction==="borrowed"?"borrowed owe":"lent owed"}`.toLocaleLowerCase().includes(query));
-  if(!loans.length)return`<div class="card empty"><b>${query?"No matching sources":"No loans yet"}</b><p>${query?"Try searching for a different bank, app, or person.":"Add a loan to track its balance. It won't affect your budget until you record a payment."}</p>${query?"":'<button data-act="addloan">Add loan</button>'}</div>`;
+  if(!loans.length)return`<div class="card empty"><b>${query?"No matching sources":"No loans yet"}</b>${query?"":'<button data-act="addloan">Add loan</button>'}</div>`;
   return loans.slice().reverse().map(loan=>{
     const paid=loanPaid(loan),total=loanTotal(loan),balance=Math.max(0,total-paid),borrowed=loan.direction==="borrowed";
     const status=balance<=0?"Fully settled":paid>0?"Partially paid":"Unpaid",statusClass=balance<=0?"settled":paid>0?"partial":"";
     const due=monthlyDueInfo(loan.dueDay);
     const credits=loan.loans.flatMap(item=>[
-      {date:item.date,details:item.note||"Initial credit",amount:item.amount},
-      ...(Array.isArray(item.credits)?item.credits.map(credit=>({date:credit.date,details:credit.details||"Additional credit",amount:credit.amount})):[])
+      ...(item.amount>0?[{loanId:item.id,creditIndex:-1,date:item.date,details:item.note||"Initial credit",amount:item.amount}]:[]),
+      ...(Array.isArray(item.credits)?item.credits.map((credit,index)=>({loanId:item.id,creditIndex:index,date:credit.date,details:credit.details||"Additional credit",amount:credit.amount})):[])
     ]).sort((a,b)=>(b.date||"").localeCompare(a.date||""));
-    return`<div class="card loan-card"><details class="credit-details"><summary class="credit-summary"><span class="loan-title"><span>${esc(loan.party)} · ${borrowed?"You owe":"Owed to you"}</span><span class="loan-status ${statusClass}">${status}</span></span><span>${fmt(balance)} left</span></summary><div class="stats" style="margin:8px"><div><small>Total credit</small><b>${fmt(total)}</b></div><div><small>Paid</small><b>${fmt(paid)}</b></div><div><small>Balance left</small><b>${fmt(balance)}</b></div></div>${due?`<p class="helper" style="margin:8px">Monthly due day ${loan.dueDay} · ${due.label}</p>`:'<p class="helper" style="margin:8px">Monthly due date not set</p>'}<div class="credit-table-wrap"><table class="credit-table"><thead><tr><th>Date</th><th>Details</th><th>Amount</th></tr></thead><tbody>${credits.map(credit=>`<tr><td>${dlabel(credit.date)}</td><td>${esc(credit.details)}</td><td>+${fmt(credit.amount)}</td></tr>`).join("")}</tbody></table></div><div class="row loan-actions"><button class="ghost" data-act="addcredit" data-id="${esc(loan.id)}">${borrowed?"Add credit":"Add amount lent"}</button><button class="ghost" data-act="setduedate" data-id="${esc(loan.id)}">${due?"Change due day":"Set due day"}</button><button class="ghost bad" data-act="deleteloan" data-id="${esc(loan.id)}">Delete source</button></div></details></div>`;
+    return`<div class="card loan-card"><details class="credit-details"><summary class="credit-summary"><span class="loan-title"><span>${esc(loan.party)} · ${borrowed?"You owe":"Owed to you"}</span><span class="loan-status ${statusClass}">${status}</span></span><span>${fmt(balance)} left</span></summary><div class="stats" style="margin:8px"><div><small>Total credit</small><b>${fmt(total)}</b></div><div><small>Paid</small><b>${fmt(paid)}</b></div><div><small>Balance left</small><b>${fmt(balance)}</b></div></div>${due?`<p class="helper" style="margin:8px">Monthly due day ${loan.dueDay} · ${due.label}</p>`:""}<div class="credit-table-wrap"><table class="credit-table"><thead><tr><th>Date</th><th>Details</th><th>Amount</th><th>Manage</th></tr></thead><tbody>${credits.map(credit=>`<tr><td>${dlabel(credit.date)}</td><td>${esc(credit.details)}</td><td>+${fmt(credit.amount)}</td><td><div class="credit-actions"><button type="button" class="ghost" data-act="editcredit" data-id="${esc(credit.loanId)}" data-index="${credit.creditIndex}">Edit</button><button type="button" class="ghost bad" data-act="deletecredit" data-id="${esc(credit.loanId)}" data-index="${credit.creditIndex}">Delete</button></div></td></tr>`).join("")}</tbody></table></div><div class="row loan-actions"><button class="ghost" data-act="addcredit" data-id="${esc(loan.id)}">${borrowed?"Add credit":"Add amount lent"}</button><button class="ghost" data-act="setduedate" data-id="${esc(loan.id)}">${due?"Change due day":"Set due day"}</button><button class="ghost bad" data-act="deleteloan" data-id="${esc(loan.id)}">Delete source</button></div></details></div>`;
   }).join("");
+}
+function editLoanCredit(id,index){
+  const loan=state.loans.find(item=>item.id===id),initial=index<0,credit=initial?loan:loan?.credits?.[index];
+  if(!loan||!credit)return;
+  openSheet(`Edit ${loan.direction==="borrowed"?"credit":"amount lent"}`,`<div class="two"><div class="field"><label for="creditAmount">Amount</label><input type="number" id="creditAmount" step="0.01" min="0.01" inputmode="decimal" value="${credit.amount}"></div><div class="field"><label for="creditDate">Date</label><input type="date" id="creditDate" value="${esc(credit.date)}"></div></div><div class="field"><label for="creditDetails">Details (optional)</label><input type="text" id="creditDetails" value="${esc(initial?loan.note||"":credit.details||"")}"></div>`,
+    ()=>{const amount=parseFloat($("#creditAmount").value),date=$("#creditDate").value;if(!Number.isFinite(amount)||amount<=0||!date){toast("Enter a valid amount and date");return false}
+      const group=loanGroups().find(item=>item.key===loanSourceKey(loan)),paid=group?loanPaid(group):0,total=group?loanTotal(group):0;
+      if(total-credit.amount+amount<paid-0.000001){toast("Amount cannot be lower than payments already recorded");return false}
+      if(initial){loan.amount=amount;loan.date=date;loan.note=$("#creditDetails").value.trim()}
+      else Object.assign(credit,{amount,date,details:$("#creditDetails").value.trim()});
+      render();toast("Credit updated")});
+}
+function deleteLoanCredit(id,index){
+  const loan=state.loans.find(item=>item.id===id),initial=index<0,credit=initial?loan:loan?.credits?.[index];
+  if(!loan||!credit)return;
+  const group=loanGroups().find(item=>item.key===loanSourceKey(loan));
+  if(!group)return;
+  confirmSheet(`Delete ${loan.direction==="borrowed"?"credit":"amount lent"}?`,`Remove this individual ${loan.direction==="borrowed"?"credit":"amount lent"} from ${esc(loanParty(loan))}?`,()=>{
+    const paid=loanPaid(group),total=loanTotal(group);
+    if(total-credit.amount<paid-0.000001){toast("Cannot remove this amount because payments have already been recorded against it");return}
+    if(initial){loan.amount=0;loan.note=""}else loan.credits.splice(index,1);
+    closeSheet();render();toast("Amount removed");
+  });
 }
 function monthlyDueInfo(day,now=new Date()){
   if(!day)return null;
@@ -273,16 +323,16 @@ function monthlyDueInfo(day,now=new Date()){
   if(dueDate<todayDate){month++;if(month>11){month=0;year++}dueDate=makeDueDate(year,month)}
   const days=Math.round((dueDate-todayDate)/86400000);
   const label=days===0?"Due today":`Due in ${days} ${days===1?"day":"days"}`;
-  return{date:dueDate,label};
+  return{date:dueDate,label,days};
 }
 function setLoanDueDate(id){
   const loan=loanGroups().find(x=>x.id===id);if(!loan)return;
-  openSheet(`Monthly due date · ${esc(loan.party)}`,`<div class="field"><label for="dueDay">Due day each month</label><select id="dueDay"><option value="">No monthly due date</option>${Array.from({length:31},(_,i)=>i+1).map(day=>{const suffix=day%100>=11&&day%100<=13?"th":day%10===1?"st":day%10===2?"nd":day%10===3?"rd":"th";return`<option value="${day}" ${loan.dueDay===day?"selected":""}>${day}${suffix} of each month</option>`}).join("")}</select></div><p class="helper">The next due date will be shown on the loan. Shorter months use their last calendar day.</p>`,
+  openSheet(`Monthly due date · ${esc(loan.party)}`,`<div class="field"><label for="dueDay">Due day each month</label><select id="dueDay"><option value="">No monthly due date</option>${Array.from({length:31},(_,i)=>i+1).map(day=>{const suffix=day%100>=11&&day%100<=13?"th":day%10===1?"st":day%10===2?"nd":day%10===3?"rd":"th";return`<option value="${day}" ${loan.dueDay===day?"selected":""}>${day}${suffix} of each month</option>`}).join("")}</select></div>`,
     ()=>{const value=$("#dueDay").value,day=value?Number(value):null;loan.loans.forEach(item=>{if(day)item.dueDay=day;else delete item.dueDay});render();toast(day?"Monthly due date saved":"Monthly due date removed")});
 }
 function loanContent(){
   const groups=loanGroups(),borrowed=groups.filter(x=>x.direction==="borrowed").reduce((total,loan)=>total+Math.max(0,loanTotal(loan)-loanPaid(loan)),0),lent=groups.filter(x=>x.direction==="lent").reduce((total,loan)=>total+Math.max(0,loanTotal(loan)-loanPaid(loan)),0);
-  return`<div class="card loan-overview"><h2>Loan overview</h2><p class="helper" style="margin:0">Your balances at a glance. Tap a source below to see credits and manage it.</p><div class="stats"><div><small>You owe</small><b>${fmt(borrowed)}</b></div><div><small>Owed to you</small><b>${fmt(lent)}</b></div></div></div><button class="cta" style="margin:0 0 14px" data-act="addloan">＋ Add loan or source</button><div class="loan-list-heading"><h2>Your sources</h2><small>${groups.length} ${groups.length===1?"source":"sources"}</small></div><div class="field"><label for="loanSourceSearch">Search by bank, app, or person</label><input type="search" id="loanSourceSearch" placeholder="e.g. bank or lender"></div><div id="loanSourceList">${loanCards()}</div>`;
+  return`<div class="card loan-overview"><h2>Loan overview</h2><div class="stats"><div><small>You owe</small><b>${fmt(borrowed)}</b></div><div><small>Owed to you</small><b>${fmt(lent)}</b></div></div></div><button class="cta" style="margin:0 0 14px" data-act="addloan">＋ Add loan or source</button><div class="loan-list-heading"><h2>Your sources</h2><small>${groups.length} ${groups.length===1?"source":"sources"}</small></div><div class="field"><label for="loanSourceSearch">Search by bank, app, or person</label><input type="search" id="loanSourceSearch" placeholder="e.g. bank or lender"></div><div id="loanSourceList">${loanCards()}</div>`;
 }
 function renderLoans(){
   const sectionTab=`<div class="seg"><button class="${loansView==="loans"?"on":""}" data-act="loanview" data-view="loans">Loans</button><button class="${loansView==="payments"?"on":""}" data-act="loanview" data-view="payments">Payments</button></div>`;
@@ -296,15 +346,15 @@ function renderPaymentOptions(){
   const list=$("#paymentLoanOptions");if(!list)return;
   const query=$("#paymentLoanSearch").value.trim().toLocaleLowerCase();
   const available=loansWithBalance().filter(({loan})=>`${loan.party} ${loan.direction==="borrowed"?"borrowed owe":"lent owed"}`.toLocaleLowerCase().includes(query));
-  list.innerHTML=available.length?available.map(({loan,balance})=>`<button type="button" class="loan-option ${loan.id===paymentLoanId?"selected":""}" data-act="selectloan" data-id="${esc(loan.id)}" aria-pressed="${loan.id===paymentLoanId}"><span>${esc(loan.party)}<small>${loan.direction==="borrowed"?"You owe":"Owed to you"}</small></span><b>${fmt(balance)} left</b></button>`).join(""):`<p class="helper" style="padding:8px;margin:0">No matching loans. Try another name.</p>`;
+  list.innerHTML=available.length?available.map(({loan,balance})=>`<button type="button" class="loan-option ${loan.id===paymentLoanId?"selected":""}" data-act="selectloan" data-id="${esc(loan.id)}" aria-pressed="${loan.id===paymentLoanId}"><span>${esc(loan.party)}<small>${loan.direction==="borrowed"?"You owe":"Owed to you"}</small></span><b>${fmt(balance)} left</b></button>`).join(""):`<p class="helper" style="padding:8px;margin:0">No matching loans.</p>`;
 }
 function renderLoanPayment(){
   const available=loansWithBalance();
-  if(!available.length)return`<div class="card"><h2>Record a payment</h2><p class="helper">Payments can be recorded here for any loan. Each payment updates that loan's balance.</p></div><div class="card empty"><b>No outstanding loans</b><p>Add a loan and credit first to record a payment.</p><button data-act="mode" data-m="loan">Go to loans</button></div>`;
-  if(!P())return`<div class="card"><h2>Record a payment</h2><p class="helper">Choose which loan you're paying. The payment is recorded in the active cutoff.</p></div>${emptyCard("No cutoff selected","Choose or create a cutoff before recording payments.","Go to cutoffs","cutoffs")}`;
+  if(!available.length)return`<div class="card"><h2>Record a payment</h2></div><div class="card empty"><b>No outstanding loans</b><button data-act="tab" data-v="loans">Go to loans</button></div>`;
+  if(!P())return`<div class="card"><h2>Record a payment</h2></div>${emptyCard("No cutoff selected","Go to cutoffs","cutoffs")}`;
   if(!available.some(({loan})=>loan.id===paymentLoanId))paymentLoanId=available[0].loan.id;
   const selected=available.find(({loan})=>loan.id===paymentLoanId);
-  const form=`<div class="card"><h2>Record a payment</h2><p class="helper">Search for the source, then select where this payment should go.</p><div class="field"><label for="paymentLoanSearch">Find a loan or source</label><input type="search" id="paymentLoanSearch" placeholder="Search bank, app, or person"></div><div class="loan-picker" id="paymentLoanOptions"></div>${selected?`<p class="helper">Selected: <b style="color:var(--ink)">${esc(selected.loan.party)}</b> · ${selected.loan.direction==="borrowed"?"You owe":"Owed to you"} · ${fmt(selected.balance)} left</p>`:""}<div class="two"><div class="field"><label for="paymentAmount">Payment amount</label><input type="number" id="paymentAmount" step="0.01" min="0.01" max="${selected?selected.balance:""}" inputmode="decimal" placeholder="0.00"></div><div class="field"><label for="paymentDate">Date</label><input type="date" id="paymentDate" value="${today()}"></div></div><div class="field"><label for="paymentMethod">Payment method (optional)</label><select id="paymentMethod"><option value="">Not specified</option>${state.paymentMethods.map(method=>`<option value="${esc(method)}">${esc(method)}</option>`).join("")}</select><small class="helper" style="display:block;margin:6px 0 0">How you paid (or received) the money, such as cash, bank transfer, or e-wallet.</small></div><div class="field"><label for="paymentDetails">Details (optional)</label><input type="text" id="paymentDetails" placeholder="e.g. Monthly payment"></div><button class="cta" data-act="recordpayment">Record payment</button></div>`;
+  const form=`<div class="card"><h2>Record a payment</h2><div class="field"><label for="paymentLoanSearch">Find a loan or source</label><input type="search" id="paymentLoanSearch" placeholder="Search bank, app, or person"></div><div class="loan-picker" id="paymentLoanOptions"></div><div class="two"><div class="field"><label for="paymentAmount">Payment amount</label><input type="number" id="paymentAmount" step="0.01" min="0.01" max="${selected?selected.balance:""}" inputmode="decimal" placeholder="0.00"></div><div class="field"><label for="paymentDate">Date</label><input type="date" id="paymentDate" value="${today()}"></div></div><div class="field"><label for="paymentMethod">Payment method (optional)</label><select id="paymentMethod"><option value="">Not specified</option>${state.paymentMethods.map(method=>`<option value="${esc(method)}">${esc(method)}</option>`).join("")}</select></div><div class="field"><label for="paymentDetails">Details (optional)</label><input type="text" id="paymentDetails" placeholder="e.g. Monthly payment"></div><button class="cta" data-act="recordpayment">Record payment</button></div>`;
   return form;
 }
 function recordLoanPayment(){
@@ -320,7 +370,7 @@ function recordLoanPayment(){
 function addLoanCredit(id){
   const loan=state.loans.find(x=>x.id===id);if(!loan)return;
   const borrowed=loan.direction==="borrowed";
-  openSheet(`${borrowed?"Add credit":"Add amount lent"} · ${esc(loanParty(loan))}`,`<p class="helper">${borrowed?"This adds to the amount you owe.":"This adds to the amount the borrower owes you."} It won't affect your budget until you record a ${borrowed?"repayment":"payment received"}.</p><div class="two"><div class="field"><label>${borrowed?"Additional credit":"Additional amount lent"}</label><input type="number" id="creditAmount" step="0.01" min="0.01" inputmode="decimal" placeholder="0.00"></div><div class="field"><label>Date added</label><input type="date" id="creditDate" value="${today()}"></div></div><div class="field"><label>Details (optional)</label><input type="text" id="creditDetails" placeholder="${borrowed?"e.g. Grocery purchase or cash advance":"e.g. Additional cash lent"}"></div>`,
+  openSheet(`${borrowed?"Add credit":"Add amount lent"} · ${esc(loanParty(loan))}`,`<div class="two"><div class="field"><label>${borrowed?"Additional credit":"Additional amount lent"}</label><input type="number" id="creditAmount" step="0.01" min="0.01" inputmode="decimal" placeholder="0.00"></div><div class="field"><label>Date added</label><input type="date" id="creditDate" value="${today()}"></div></div><div class="field"><label>Details (optional)</label><input type="text" id="creditDetails" placeholder="${borrowed?"e.g. Grocery purchase or cash advance":"e.g. Additional cash lent"}"></div>`,
     ()=>{const amount=parseFloat($("#creditAmount").value),date=$("#creditDate").value,details=$("#creditDetails").value.trim();if(!Number.isFinite(amount)||amount<=0||!date){toast("Enter a valid amount and date");return false}
       if(!Array.isArray(loan.credits))loan.credits=[];
       loan.credits.push({amount,date,details});render();toast("Credit added")});
@@ -341,14 +391,15 @@ function deleteLoan(id){
 
 function renderCutoffs(){
   const keys=Object.keys(state.periods).sort().reverse();
-  $("#v-cutoffs").innerHTML=`<div class="card"><h2>New cutoff</h2><p class="helper">Pick the cutoff date and your salary for it.</p><div class="two"><div class="field"><label>Cutoff date</label><input type="date" id="cDate" /></div><div class="field"><label>Salary</label><input type="number" id="cSal" step="0.01" inputmode="decimal" placeholder="0.00" /></div></div><button class="cta" style="margin:0" data-act="savep">Save cutoff</button></div>`+
-  (keys.length?`<h2 style="margin:18px 4px 10px">Your cutoffs</h2>`+keys.map(k=>{const t=totals(k);return`<div class="card pcard ${k===active?"act":""}" data-act="openp" data-k="${k}"><div class="h"><b>${dlabel(k)==="Today"?k:k}</b>${k===active?'<span class="badge">Active</span>':""}<button class="ghost" style="padding:6px 12px;font-size:12px" data-act="editp" data-k="${k}">Edit</button></div><div class="stats"><div><small>Incoming</small><b>${fmt(t.income)}</b></div><div><small>Outgoing</small><b>${fmt(t.expenses)}</b></div><div><small>Remaining</small><b class="${t.remaining<0?"neg":""}">${fmt(t.remaining)}</b></div></div></div>`}).join(""):`<div class="card empty"><b>No cutoffs yet</b><p>Create one above to get started.</p></div>`)}
+  $("#v-cutoffs").innerHTML=`<div class="card"><h2>New cutoff</h2><div class="two"><div class="field"><label>Cutoff date</label><input type="date" id="cDate" /></div><div class="field"><label>Salary</label><input type="number" id="cSal" step="0.01" inputmode="decimal" placeholder="0.00" /></div></div><button class="cta" style="margin:0" data-act="savep">Save cutoff</button></div>`+
+  (keys.length?`<h2 style="margin:18px 4px 10px">Your cutoffs</h2>`+keys.map(k=>{const t=totals(k);return`<div class="card pcard ${k===active?"act":""}" data-act="openp" data-k="${k}"><div class="h"><b>${dlabel(k)==="Today"?k:k}</b>${k===active?'<span class="badge">Active</span>':""}<button class="ghost" style="padding:6px 12px;font-size:12px" data-act="editp" data-k="${k}">Edit</button></div><div class="stats"><div><small>Incoming</small><b>${fmt(t.income)}</b></div><div><small>Outgoing</small><b>${fmt(t.expenses)}</b></div><div><small>Remaining</small><b class="${t.remaining<0?"neg":""}">${fmt(t.remaining)}</b></div></div></div>`}).join(""):`<div class="card empty"><b>No cutoffs yet</b></div>`)}
 
 function renderMore(){
   $("#v-more").innerHTML=`<div class="card"><h2>Categories</h2><div class="chips">${state.categories.map(c=>`<button class="chip" data-act="editc" data-c="${esc(c)}">${esc(c)} ✎</button>`).join("")}</div><div class="two" style="grid-template-columns:1fr auto"><input type="text" id="newCat" placeholder="New category" /><button data-act="addc">Add</button></div></div>
-  <div class="card"><h2>Payment methods</h2><p class="helper">Choose a method for expenses and loan payments. Removing a method keeps it on existing records.</p><div class="chips">${state.paymentMethods.map(m=>`<button class="chip" data-act="editpm" data-m="${esc(m)}">${esc(m)} ✎</button>`).join("")||'<span class="helper">No payment methods yet.</span>'}</div><div class="two" style="grid-template-columns:1fr auto"><input type="text" id="newMethod" placeholder="e.g. Maya, Visa" /><button data-act="addpm">Add method</button></div></div>
-  <div class="card"><h2>Savings carried over</h2><p class="helper">Savings you had before using this tracker.</p><input type="number" id="prev" step="0.01" inputmode="decimal" value="${state.previousSavings||0}" /><p class="helper" style="margin:12px 0 0">Total saved so far: <b id="savedTot" style="color:var(--ink)">${fmt(saved())}</b></p></div>
-  <div class="card"><h2>Backup &amp; restore</h2><p class="helper">Changes autosave in this browser. Save a backup file for an extra copy.</p><div class="row"><button data-act="backup">Save backup</button><button class="ghost" data-act="restore">Load backup</button></div><input type="file" id="fileIn" accept=".txt" hidden /></div>`}
+  <div class="card"><h2>Payment methods</h2><div class="chips">${state.paymentMethods.map(m=>`<button class="chip" data-act="editpm" data-m="${esc(m)}">${esc(m)} ✎</button>`).join("")}</div><div class="two" style="grid-template-columns:1fr auto"><input type="text" id="newMethod" placeholder="e.g. Maya, Visa" /><button data-act="addpm">Add method</button></div></div>
+  <div class="card"><h2>Loan reminders</h2><div class="field"><label for="loanReminderDays">Show on Home before due</label><select id="loanReminderDays">${[[0,"Off"],[1,"1 day"],[3,"3 days"],[7,"7 days"],[14,"14 days"],[30,"30 days"]].map(([days,label])=>`<option value="${days}" ${state.loanReminderDays===days?"selected":""}>${label}</option>`).join("")}</select></div></div>
+  <div class="card"><h2>Savings carried over</h2><input type="number" id="prev" step="0.01" inputmode="decimal" value="${state.previousSavings||0}" /><p class="helper" style="margin:12px 0 0">Total saved so far: <b id="savedTot" style="color:var(--ink)">${fmt(saved())}</b></p></div>
+  <div class="card"><h2>Backup &amp; restore</h2><div class="row"><button data-act="backup">Save backup</button><button class="ghost" data-act="restore">Load backup</button></div><input type="file" id="fileIn" accept=".txt" hidden /></div>`}
 
 function render(){
   const names={home:"Home",add:"Add",history:"History",loans:"Loans",cutoffs:"Cutoffs",more:"More"};
@@ -399,13 +450,13 @@ function editPeriod(k){
    ()=>{confirmSheet("Delete cutoff?",`Delete cutoff ${esc(k)} and all its data?`,()=>{delete state.periods[k];if(active===k){const r=Object.keys(state.periods).sort();active=r.length?r[r.length-1]:null}closeSheet();render();toast("Cutoff deleted")});return false});
 }
 function editCat(old){
-  openSheet("Edit category",`<div class="field"><label>Name</label><input type="text" id="fName" value="${esc(old)}"></div><p class="helper">Deleting keeps the old label on existing expenses.</p>`,
+  openSheet("Edit category",`<div class="field"><label>Name</label><input type="text" id="fName" value="${esc(old)}"></div>`,
    ()=>{const n=$("#fName").value.trim();if(!n||n===old)return;if(state.categories.includes(n)){toast("Already exists");return false}
      state.categories=state.categories.map(c=>c===old?n:c);Object.values(state.periods).forEach(p=>p.expenses.forEach(e=>{if(e.cat===old)e.cat=n}));if(addCat===old)addCat=n;render();toast("Category updated")},
    ()=>{state.categories=state.categories.filter(c=>c!==old);render();toast("Category deleted")});
 }
 function editPaymentMethod(old){
-  openSheet("Edit payment method",`<div class="field"><label>Name</label><input type="text" id="fName" value="${esc(old)}"></div><p class="helper">Renaming updates existing expenses. Deleting keeps the saved method on existing expenses.</p>`,
+  openSheet("Edit payment method",`<div class="field"><label>Name</label><input type="text" id="fName" value="${esc(old)}"></div>`,
    ()=>{const n=$("#fName").value.trim();if(!n||n===old)return;if(state.paymentMethods.includes(n)){toast("Already exists");return false}
      state.paymentMethods=state.paymentMethods.map(m=>m===old?n:m);Object.values(state.periods).forEach(p=>p.expenses.forEach(e=>{if(e.method===old)e.method=n}));render();toast("Payment method updated")},
    ()=>{state.paymentMethods=state.paymentMethods.filter(m=>m!==old);render();toast("Payment method deleted")});
@@ -443,6 +494,8 @@ const ACT={
   edit:d=>editEntry(d.type,+d.i),
   addloan:addLoan,
   addcredit:d=>addLoanCredit(d.id),
+  editcredit:d=>editLoanCredit(d.id,+d.index),
+  deletecredit:d=>deleteLoanCredit(d.id,+d.index),
   setduedate:d=>setLoanDueDate(d.id),
   recordpayment:recordLoanPayment,
   deleteloan:d=>deleteLoan(d.id),
@@ -460,7 +513,7 @@ document.addEventListener("click",e=>{
   if(t.classList.contains("pcard")&&e.target.closest("button[data-act=editp]"))return;
   e.stopPropagation();ACT[t.dataset.act]&&ACT[t.dataset.act](t.dataset);
 });
-document.addEventListener("change",e=>{if(e.target.id==="fileIn")loadFile(e)});
+document.addEventListener("change",e=>{if(e.target.id==="fileIn")loadFile(e);if(e.target.id==="loanReminderDays"){state.loanReminderDays=Number(e.target.value);autosave();if(view==="home")renderHome()}});
 document.addEventListener("input",e=>{if(e.target.id==="prev"){state.previousSavings=parseFloat(e.target.value)||0;$("#savedTot").textContent=fmt(saved());autosave()}if(e.target.id==="paymentLoanSearch")renderPaymentOptions();if(e.target.id==="loanSourceSearch")$("#loanSourceList").innerHTML=loanCards()});
 
 autoload();render();
