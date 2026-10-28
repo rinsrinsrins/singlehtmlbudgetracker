@@ -12,8 +12,14 @@
 <link id="appleTouchIcon" rel="apple-touch-icon" href="" />
 <style>
 :root{--bg:#f2f0ea;--card:#fff;--ink:#121212;--sub:#7a766c;--line:#e6e3da;--soft:#f6f4ee;--lime:#c8f542;--on:#121212;--hero:#121212;--danger:#e0443e;--good:#1f9d63}
-@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0b0b0b;--card:#181818;--ink:#f1efe8;--sub:#8d8a80;--line:#2a2a28;--soft:#212120;--hero:#1e1e1c}}
+@media (prefers-color-scheme:dark){:root:not([data-theme]),:root[data-theme=system]{--bg:#0b0b0b;--card:#181818;--ink:#f1efe8;--sub:#8d8a80;--line:#2a2a28;--soft:#212120;--hero:#1e1e1c;color-scheme:dark}}
+:root[data-theme=system],:root[data-theme=light]{color-scheme:light}
+@media (prefers-color-scheme:dark){:root[data-theme=system]{color-scheme:dark}}
 :root[data-theme=dark]{--bg:#0b0b0b;--card:#181818;--ink:#f1efe8;--sub:#8d8a80;--line:#2a2a28;--soft:#212120;--hero:#1e1e1c}
+:root[data-theme=dark]{color-scheme:dark}
+:root[data-theme=ocean]{--bg:#eaf3f7;--card:#fff;--ink:#102a38;--sub:#58717c;--line:#d3e2e8;--soft:#f1f7f9;--lime:#59c3e6;--on:#102a38;--hero:#123c52;--danger:#cf4f59;--good:#248b68;color-scheme:light}
+:root[data-theme=forest]{--bg:#edf2e9;--card:#fff;--ink:#1d3022;--sub:#647568;--line:#d9e3d6;--soft:#f3f7f0;--lime:#a9d77b;--on:#1d3022;--hero:#203c2a;--danger:#cf554b;--good:#36865b;color-scheme:light}
+:root[data-theme=lavender]{--bg:#f1eef7;--card:#fff;--ink:#28233a;--sub:#777087;--line:#e0dbea;--soft:#f7f5fa;--lime:#c2a9ef;--on:#28233a;--hero:#342b4c;--danger:#d95769;--good:#318d70;color-scheme:light}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 "Inter",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
@@ -177,9 +183,10 @@ h2{font-size:13px;margin:0 0 10px;color:var(--sub);font-weight:700;letter-spacin
 <div id="scrim"></div><div id="sheet" role="dialog" aria-modal="true"></div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <script>
-let state={categories:["Food","Transportation","Bills","Others"],paymentMethods:["Cash","Debit card","Credit card","Bank transfer","E-wallet","Other"],periods:{},loans:[],previousSavings:0,loanReminderDays:7};
+let state={categories:["Food","Transportation","Bills","Others"],paymentMethods:["Cash","Debit card","Credit card","Bank transfer","E-wallet","Other"],periods:{},loans:[],previousSavings:0,loanReminderDays:7,theme:"system"};
 let active=null,view="home",mode="expense",filter="all",loansView="loans",paymentLoanId=null,addCat=null,addDate=null;
 const LS="budget-tracker-autosave",$=s=>document.querySelector(s);
+const THEMES=["system","light","dark","ocean","forest","lavender"];
 const sum=a=>a.reduce((s,x)=>s+x.amt,0);
 const fmt=n=>(n<0?"-":"")+"₱"+Math.abs(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
 const esc=v=>String(v).replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));
@@ -191,8 +198,9 @@ function totals(k){const p=state.periods[k],income=p.salary+sum(p.income),expens
 function saved(){return Object.keys(state.periods).reduce((t,k)=>t+totals(k).remaining,state.previousSavings||0)}
 let tt;function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(tt);tt=setTimeout(()=>t.classList.remove("show"),2200)}
 function autosave(){try{localStorage.setItem(LS,JSON.stringify({state,activePeriodKey:active}))}catch(e){}}
-function applyLoaded(p){state={categories:p.categories,paymentMethods:Array.isArray(p.paymentMethods)?p.paymentMethods:["Cash","Debit card","Credit card","Bank transfer","E-wallet","Other"],periods:p.periods,loans:Array.isArray(p.loans)?p.loans:[],previousSavings:p.previousSavings||0,loanReminderDays:Number.isInteger(p.loanReminderDays)&&p.loanReminderDays>=0&&p.loanReminderDays<=60?p.loanReminderDays:7};const ks=Object.keys(state.periods).sort();active=p.activePeriodKey&&state.periods[p.activePeriodKey]?p.activePeriodKey:ks.length?ks[ks.length-1]:null}
+function applyLoaded(p){state={categories:p.categories,paymentMethods:Array.isArray(p.paymentMethods)?p.paymentMethods:["Cash","Debit card","Credit card","Bank transfer","E-wallet","Other"],periods:p.periods,loans:Array.isArray(p.loans)?p.loans:[],previousSavings:p.previousSavings||0,loanReminderDays:Number.isInteger(p.loanReminderDays)&&p.loanReminderDays>=0&&p.loanReminderDays<=60?p.loanReminderDays:7,theme:THEMES.includes(p.theme)?p.theme:"system"};setTheme(state.theme);const ks=Object.keys(state.periods).sort();active=p.activePeriodKey&&state.periods[p.activePeriodKey]?p.activePeriodKey:ks.length?ks[ks.length-1]:null}
 function autoload(){try{const r=localStorage.getItem(LS);if(!r)return;const p=JSON.parse(r);if(p.state&&p.state.categories&&p.state.periods)applyLoaded({...p.state,activePeriodKey:p.activePeriodKey})}catch(e){}}
+function setTheme(theme){state.theme=THEMES.includes(theme)?theme:"system";document.documentElement.dataset.theme=state.theme}
 
 /* ---------- icons / tabs ---------- */
 const IC={home:'<path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"/>',add:'<path d="M12 5v14M5 12h14"/>',history:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',loans:'<path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM16 8.5c-.6-.8-1.6-1.2-3-1.2-1.7 0-2.8.8-2.8 2s1 1.8 2.8 2.2 2.8 1 2.8 2.2-1.1 2-2.8 2c-1.4 0-2.5-.5-3.1-1.4M12 5.5v13"/>',cutoffs:'<path d="M3 5h18v16H3zM3 10h18M8 3v4M16 3v4"/>',more:'<path d="M5 12h.01M12 12h.01M19 12h.01" stroke-width="3.4"/>'};
@@ -398,6 +406,7 @@ function renderCutoffs(){
 function renderMore(){
   $("#v-more").innerHTML=`<div class="card"><h2>Categories</h2><div class="chips">${state.categories.map(c=>`<button class="chip" data-act="editc" data-c="${esc(c)}">${esc(c)} ✎</button>`).join("")}</div><div class="two" style="grid-template-columns:1fr auto"><input type="text" id="newCat" placeholder="New category" /><button data-act="addc">Add</button></div></div>
   <div class="card"><h2>Payment methods</h2><div class="chips">${state.paymentMethods.map(m=>`<button class="chip" data-act="editpm" data-m="${esc(m)}">${esc(m)} ✎</button>`).join("")}</div><div class="two" style="grid-template-columns:1fr auto"><input type="text" id="newMethod" placeholder="e.g. Maya, Visa" /><button data-act="addpm">Add method</button></div></div>
+  <div class="card"><h2>Appearance</h2><div class="field"><label for="themeSelect">Theme</label><select id="themeSelect">${[["system","System"],["light","Light"],["dark","Dark"],["ocean","Ocean"],["forest","Forest"],["lavender","Lavender"]].map(([value,label])=>`<option value="${value}" ${state.theme===value?"selected":""}>${label}</option>`).join("")}</select></div></div>
   <div class="card"><h2>Loan reminders</h2><div class="field"><label for="loanReminderDays">Show on Home before due</label><select id="loanReminderDays">${[[0,"Off"],[1,"1 day"],[3,"3 days"],[7,"7 days"],[14,"14 days"],[30,"30 days"]].map(([days,label])=>`<option value="${days}" ${state.loanReminderDays===days?"selected":""}>${label}</option>`).join("")}</select></div></div>
   <div class="card"><h2>Savings carried over</h2><input type="number" id="prev" step="0.01" inputmode="decimal" value="${state.previousSavings||0}" /><p class="helper" style="margin:12px 0 0">Total saved so far: <b id="savedTot" style="color:var(--ink)">${fmt(saved())}</b></p></div>
   <div class="card"><h2>Backup &amp; restore</h2><div class="row"><button data-act="backup">Save backup</button><button class="ghost" data-act="restore">Load backup</button></div><input type="file" id="fileIn" accept=".txt" hidden /></div>`}
@@ -522,7 +531,7 @@ document.addEventListener("click",e=>{
 const updateHeader=()=>$(".top").classList.toggle("scrolled",window.scrollY>4);
 window.addEventListener("scroll",updateHeader,{passive:true});
 updateHeader();
-document.addEventListener("change",e=>{if(e.target.id==="fileIn")loadFile(e);if(e.target.id==="loanReminderDays"){state.loanReminderDays=Number(e.target.value);autosave();if(view==="home")renderHome()}});
+document.addEventListener("change",e=>{if(e.target.id==="fileIn")loadFile(e);if(e.target.id==="loanReminderDays"){state.loanReminderDays=Number(e.target.value);autosave();if(view==="home")renderHome()}if(e.target.id==="themeSelect"){setTheme(e.target.value);updateBrowserThemeColor();autosave()}});
 document.addEventListener("input",e=>{if(e.target.id==="prev"){state.previousSavings=parseFloat(e.target.value)||0;$("#savedTot").textContent=fmt(saved());autosave()}if(e.target.id==="paymentLoanSearch")renderPaymentOptions();if(e.target.id==="loanSourceSearch")$("#loanSourceList").innerHTML=loanCards()});
 
 autoload();render();
