@@ -1094,17 +1094,37 @@
             });
       };
       const P = () => active && state.periods[active];
+      const isLoanRepayment = (entry) =>
+        !!entry.loanPayment ||
+        (!!entry.loanId && !entry.creditCharge) ||
+        ["loan payment", "loan repayment"].includes(
+          (entry.cat || "").trim().toLocaleLowerCase(),
+        ) ||
+        /loan repayment/i.test(entry.desc || "");
+      const isLoanCollection = (entry) =>
+        !!entry.loanId && !entry.borrowedFunds;
       function totals(k) {
         const p = state.periods[k],
           income =
-            p.salary + sum(p.income.filter((entry) => !entry.borrowedFunds)),
+            p.salary +
+            sum(
+              p.income.filter(
+                (entry) => !entry.borrowedFunds && !isLoanCollection(entry),
+              ),
+            ),
           borrowed = sum(p.income.filter((entry) => entry.borrowedFunds)),
-          expenses = sum(p.expenses.filter((entry) => !entry.loanPayment));
+          collections = sum(p.income.filter(isLoanCollection)),
+          expenses = sum(p.expenses.filter((entry) => !isLoanRepayment(entry))),
+          cashInflow = p.salary + sum(p.income),
+          cashOutflow = sum(p.expenses.filter((entry) => !entry.creditCharge));
         return {
           income,
           borrowed,
+          collections,
           expenses,
-          remaining: income + borrowed - expenses,
+          cashInflow,
+          cashOutflow,
+          remaining: cashInflow - cashOutflow,
         };
       }
       function saved() {
@@ -1207,7 +1227,7 @@
       function itemRow(type, i, x, showMethod = true) {
         const inc = type === "i" || type === "b",
           borrowed = type === "b" || !!x.borrowedFunds,
-          payment = !!x.loanPayment,
+          payment = !inc && isLoanRepayment(x),
           time = x.createdAt ? tlabel(x.createdAt) : "",
           account =
             (x.creditCharge || x.borrowedFunds) && x.loanId
@@ -1215,6 +1235,8 @@
               : null,
           detail = payment
             ? `Credit repayment${showMethod && x.method ? ` · ${esc(x.method)}` : ""}`
+            : inc && !borrowed && isLoanCollection(x)
+              ? `Loan repayment received${showMethod && x.method ? ` · ${esc(x.method)}` : ""}`
             : `${borrowed ? "Borrowed funds" : inc ? "Income" : esc(x.cat)}${showMethod && x.method ? ` · ${esc(x.method)}` : ""}${showMethod && account ? ` · ${esc(loanParty(account))}` : ""}`;
         return `<div class="item" data-act="edit" data-type="${type}" data-i="${i}"><div class="ico ${inc && !borrowed ? "inc" : ""}">${payment ? "↘" : borrowed ? "↗" : inc ? "+" : esc((x.cat || "?")[0].toUpperCase())}</div><div class="m"><b>${esc(x.desc || x.cat)}</b><small>${detail} · ${dlabel(x.date || active)}${time ? ` · ${esc(time)}` : ""}</small></div><div class="amt ${inc && !borrowed ? "in" : ""}">${inc ? "+" : payment ? "↘" : "-"}${fmt(x.amt).replace("-", "")}</div></div>`;
       }
@@ -1233,22 +1255,25 @@
           C = 2 * Math.PI * 54;
         const pct =
             t.income > 0
-              ? Math.min(t.expenses / t.income, 1)
-              : t.expenses > 0
+              ? Math.min(t.cashOutflow / t.income, 1)
+              : t.cashOutflow > 0
                 ? 1
                 : 0,
           over = t.remaining < 0;
         const tx = p.expenses
           .map((e, i) => [i, e])
-          .filter(([i, e]) => !e.loanPayment && (e.date || active) === td);
+          .filter(
+            ([i, e]) =>
+              !e.creditCharge && (e.date || active) === td,
+          );
         const byCat = {};
         p.expenses
-          .filter((e) => !e.loanPayment)
+          .filter((e) => !isLoanRepayment(e))
           .forEach((e) => (byCat[e.cat] = (byCat[e.cat] || 0) + e.amt));
         const ents = Object.entries(byCat).sort((a, b) => b[1] - a[1]),
           max = ents.length ? ents[0][1] : 1;
         el.innerHTML = `<div class="hero"><div class="ringwrap"><svg class="ring" viewBox="0 0 128 128"><circle cx="64" cy="64" r="54" stroke="rgba(255,255,255,.1)"/><circle cx="64" cy="64" r="54" stroke="${over ? "#ff8a85" : "var(--lime)"}" stroke-dasharray="${pct * C} ${C}"/></svg><div class="ringc"><small>LEFT</small><b class="${over ? "neg" : "lime"}">${fmt(t.remaining)}</b></div></div>
-  <div class="stats"><div><small>Income</small><b>${fmt(t.income)}</b></div><div><small>Spent</small><b>${fmt(t.expenses)}</b></div><div><small>Today</small><b>${fmt(sum(tx.map((x) => x[1])))}</b></div></div></div>
+  <div class="stats"><div><small>Income</small><b>${fmt(t.income)}</b></div><div><small>Expenses</small><b>${fmt(t.expenses)}</b></div><div><small>Out today</small><b>${fmt(sum(tx.map((x) => x[1])))}</b></div></div></div>
   <div class="card"><h2>Today</h2>${
     tx.length
       ? tx
@@ -1390,7 +1415,7 @@
                   const g = groups[d],
                     spent = sum(
                       g
-                        .filter((o) => o.t === "e" && !o.x.loanPayment)
+                        .filter((o) => o.t === "e" && !o.x.creditCharge)
                         .map((o) => o.x),
                     );
                   return `<div class="day"><span>${dlabel(d)}</span><span>${spent ? "-" + fmt(spent).replace("-", "") : ""}</span></div><div class="card" style="padding:4px 16px">${g.map((o) => itemRow(o.t, o.i, o.x)).join("")}</div>`;
@@ -1950,7 +1975,7 @@
           createdAt: new Date().toISOString(),
           loanId: loan.id,
           method: $("#paymentMethod").value,
-          ...(loan.creditAccount ? { loanPayment: true } : {}),
+          ...(borrowed ? { loanPayment: true } : {}),
         };
         if (borrowed) {
           entry.cat = "Loan repayment";
@@ -2148,7 +2173,7 @@
               keys
                 .map((k) => {
                   const t = totals(k);
-                  return `<div class="card pcard ${k === active ? "act" : ""}" data-act="openp" data-k="${k}"><div class="h"><b>${dlabel(k) === "Today" ? k : k}</b>${k === active ? '<span class="badge">Active</span>' : ""}<button class="ghost" style="padding:6px 12px;font-size:12px" data-act="editp" data-k="${k}">Edit</button></div><div class="stats"><div><small>Income</small><b>${fmt(t.income)}</b></div><div><small>Borrowed</small><b>${fmt(t.borrowed)}</b></div><div><small>Outgoing</small><b>${fmt(t.expenses)}</b></div><div><small>Remaining</small><b class="${t.remaining < 0 ? "neg" : ""}">${fmt(t.remaining)}</b></div></div></div>`;
+                  return `<div class="card pcard ${k === active ? "act" : ""}" data-act="openp" data-k="${k}"><div class="h"><b>${dlabel(k) === "Today" ? k : k}</b>${k === active ? '<span class="badge">Active</span>' : ""}<button class="ghost" style="padding:6px 12px;font-size:12px" data-act="editp" data-k="${k}">Edit</button></div><div class="stats"><div><small>Income</small><b>${fmt(t.income)}</b></div><div><small>Borrowed</small><b>${fmt(t.borrowed)}</b></div><div><small>Received back</small><b>${fmt(t.collections)}</b></div><div><small>Cash out</small><b>${fmt(t.cashOutflow)}</b></div><div><small>Remaining</small><b class="${t.remaining < 0 ? "neg" : ""}">${fmt(t.remaining)}</b></div></div></div>`;
                 })
                 .join("")
             : `<div class="card empty"><b>No cutoffs yet</b></div>`);
@@ -2266,7 +2291,7 @@
         const loanGroup =
           loan && loanGroups().find((x) => x.key === loanSourceKey(loan));
         const creditAccounts =
-          (!inc || it.borrowedFunds) && !it.loanPayment
+          (!inc || it.borrowedFunds) && !isLoanRepayment(it)
             ? loanGroups().filter((group) => group.creditAccount)
             : [];
         const methods = state.paymentMethods.concat(
